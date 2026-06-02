@@ -1,0 +1,75 @@
+# ==============================================================================
+# Apex Intel - Consolidated Root .gitignore
+# Covers Next.js (Frontend), FastAPI/Python (Backend), Database, and IDEs
+# ==============================================================================
+
+# ── Node.js & Next.js (Frontend) ──────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.tsbuildinfo
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+
+# ── Python & FastAPI (Backend) ────────────────────────────────────────────────
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/.tox/
+backend/.coverage
+backend/htmlcov/
+backend/dist/
+backend/build/
+backend/*.egg-info/
+
+# Python Virtual Environments
+backend/venv/
+backend/.venv/
+backend/env/
+backend/ENV/
+backend/env.bak/
+backend/venv.bak/
+
+# ── Database & Cache (PostgreSQL/SQLite/Redis) ────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+backend/dump.rdb
+
+# ── Environment & Local Config Files ──────────────────────────────────────────
+# DO NOT commit sensitive API keys (OpenAI, Serper, Database URLs) to GitHub
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+.env.config
+backend/.env
+backend/.env.production
+backend/.env.development
+backend/.env.test
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.development
+frontend/.env.test
+
+# ── IDEs, Editors & OS Files ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
