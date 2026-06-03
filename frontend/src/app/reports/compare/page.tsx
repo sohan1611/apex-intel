@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
@@ -11,14 +10,11 @@ import { MOCK_COMPARISON_REPORTS } from '@/lib/mock-data';
 import ComparisonTable from '@/features/reports/ComparisonTable';
 
 function CompareContent() {
-  const searchParams = useSearchParams();
-  const idsParam = searchParams.get('ids') ?? '';
-
   /* For mock data — we always use MOCK_COMPARISON_REPORTS regardless of ids */
   const reports = useMemo(() => {
     // In a real app, filter by ids. For mock, return all comparison reports.
     return MOCK_COMPARISON_REPORTS;
-  }, [idsParam]);
+  }, []);
 
   return (
     <>

@@ -165,7 +165,6 @@ export interface CompetitorEntry {
 // ──────────────────────────────────────────────
 
 /** Full report used in comparison tables and report views */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface FullReport {
   id: string;
   status?: string;

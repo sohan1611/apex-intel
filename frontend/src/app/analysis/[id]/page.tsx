@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -171,12 +171,11 @@ function deriveAgentStatuses(
 
 export default function AnalysisDashboardPage() {
   const [tick, setTick] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const isComplete = tick >= SIMULATION_TIMELINE.length - 1;
 
   // Advance simulation
   useEffect(() => {
     if (tick >= SIMULATION_TIMELINE.length - 1) {
-      setIsComplete(true);
       return;
     }
 
