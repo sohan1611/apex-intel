@@ -2,16 +2,39 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { BarChart3, Plus, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
+ * Navigation link data.
+ */
+const NAV_LINKS = [
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/analyze', label: 'Analyze' },
+  { href: '/reports', label: 'Reports' },
+  { href: '/reports/compare', label: 'Compare' },
+  { href: '/about', label: 'About' },
+] as const;
+
+/**
  * Primary navigation bar for Apex Intel.
  * Fixed at the top with responsive mobile hamburger menu.
- * Contains logo, navigation links, and "New Analysis" CTA.
+ * Contains logo, navigation links with active indicators, and "New Analysis" CTA.
  */
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  /**
+   * Determines if a nav link is active based on the current pathname.
+   */
+  function isActive(href: string): boolean {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === '/reports/compare') return pathname === '/reports/compare';
+    if (href === '/reports') return pathname === '/reports';
+    return pathname.startsWith(href);
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-14 bg-bg-secondary border-b border-border-default">
@@ -28,13 +51,30 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link
-            href="/reports"
-            className="text-sm text-text-secondary hover:text-text-primary transition-colors"
-          >
-            Reports
-          </Link>
+        <div className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'relative px-3 py-1.5 text-sm rounded-md transition-colors',
+                  active
+                    ? 'text-text-primary font-medium'
+                    : 'text-text-tertiary hover:text-text-secondary'
+                )}
+              >
+                {link.label}
+                {active && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-accent-primary" />
+                )}
+              </Link>
+            );
+          })}
+
+          <div className="w-px h-5 bg-border-default mx-2" />
+
           <Link
             href="/analyze"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium
@@ -60,26 +100,39 @@ export default function Navbar() {
       <div
         className={cn(
           'md:hidden absolute top-14 left-0 right-0 bg-bg-secondary border-b border-border-default overflow-hidden transition-all duration-200',
-          mobileMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+          mobileMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
         )}
       >
-        <div className="px-4 py-3 space-y-2">
-          <Link
-            href="/reports"
-            className="block px-3 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Reports
-          </Link>
-          <Link
-            href="/analyze"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium
-                       bg-accent-primary hover:bg-accent-hover text-white transition-colors"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Plus className="h-4 w-4" />
-            New Analysis
-          </Link>
+        <div className="px-4 py-3 space-y-1">
+          {NAV_LINKS.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'block px-3 py-2 rounded-md text-sm transition-colors',
+                  active
+                    ? 'text-text-primary font-medium bg-bg-tertiary/50'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
+                )}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+          <div className="pt-2">
+            <Link
+              href="/analyze"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium
+                         bg-accent-primary hover:bg-accent-hover text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Plus className="h-4 w-4" />
+              New Analysis
+            </Link>
+          </div>
         </div>
       </div>
     </nav>
@@ -87,4 +140,3 @@ export default function Navbar() {
 }
 
 export { Navbar };
-

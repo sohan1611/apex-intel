@@ -14,7 +14,33 @@ import AssumptionTable from '@/features/report/AssumptionTable';
 import ExecutionSection from '@/features/report/ExecutionSection';
 import ContradictionsSection from '@/features/report/ContradictionsSection';
 import ScoreBreakdown from '@/features/report/ScoreBreakdown';
+import { SignalBadge } from '@/components/ui/SignalBadge';
 import { MOCK_REPORT } from '@/lib/mock-data';
+
+// -- Section jump targets --
+
+const JUMP_SECTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'red-flags', label: 'Red Flags' },
+  { id: 'company-brief', label: 'Company' },
+  { id: 'market-analysis', label: 'Market' },
+  { id: 'competitors', label: 'Competitors' },
+  { id: 'risk-analysis', label: 'Risks' },
+  { id: 'assumptions', label: 'Assumptions' },
+  { id: 'execution', label: 'Execution' },
+  { id: 'contradictions', label: 'Contradictions' },
+  { id: 'score-breakdown', label: 'Score' },
+];
+
+// -- Helper to format large numbers --
+
+function formatLargeNumber(n: number | undefined | null): string {
+  if (n == null) return 'N/A';
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(0)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(0)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${n}`;
+}
 
 /**
  * Report Viewer Page
@@ -25,14 +51,106 @@ import { MOCK_REPORT } from '@/lib/mock-data';
 export default function ReportPage() {
   const report = MOCK_REPORT;
 
+  // Derived stats for executive summary and quick stats
+  const totalScore = report.score?.total_score ?? report.investmentScore ?? 0;
+  const signal = report.score?.investment_signal ?? report.investment_signal ?? 'MODERATE';
+  const confidence = report.overall_confidence_score ?? 0;
+  const redFlagCount = report.red_flags?.length ?? 0;
+  const competitorCount = report.competitors?.length ?? 0;
+  const riskCount = (report.skeptic_analysis ?? []).length;
+  const assumptionCount = (report.assumptions ?? []).length;
+  const contradictionCount = (report.contradictions ?? []).length;
+  const tamEstimate = report.market_analysis?.tam_estimate;
+
+  const handleJump = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-bg-primary">
       <Navbar />
+
+      {/* Sticky Jump-to-Section Bar */}
+      <div className="sticky top-14 z-40 bg-bg-secondary border-b border-border-default lg:ml-56">
+        <div className="max-w-4xl mx-auto px-6 lg:px-10 py-2 flex gap-2 overflow-x-auto scrollbar-hide">
+          {JUMP_SECTIONS.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => handleJump(section.id)}
+              className="text-xs px-3 py-1.5 rounded-full bg-bg-tertiary border border-border-default text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/80 transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <ReportSidebar />
       <MobileTabBar />
 
       <main className="lg:ml-56 p-6 lg:p-10">
         <div className="max-w-4xl mx-auto">
+          {/* Executive Summary */}
+          <section className="mb-12">
+            <div className="rounded-lg bg-bg-secondary border-l-4 border-l-accent-primary p-6">
+              <h2 className="text-lg font-semibold text-text-primary mb-3">Executive Summary</h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                {report.companyName ?? 'This company'} demonstrates moderate market potential with
+                significant competitive headwinds. The AI nutrition space is growing but crowded, and
+                execution risks around regulatory compliance and data moat defensibility temper the
+                opportunity.
+              </p>
+              <div className="flex flex-wrap gap-6 mt-4 pt-4 border-t border-border-default">
+                <div className="flex flex-col">
+                  <span className="text-xs text-text-muted">Score</span>
+                  <span className="text-lg font-semibold text-text-primary">
+                    {totalScore}
+                    <span className="text-sm text-text-muted font-normal">/100</span>
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-text-muted">Signal</span>
+                  <div className="mt-1">
+                    <SignalBadge signal={signal} />
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-text-muted">Confidence</span>
+                  <span className="text-lg font-semibold text-text-primary">
+                    {Math.round(confidence * 100)}%
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-text-muted">Red Flags</span>
+                  <span className="text-lg font-semibold text-text-primary">{redFlagCount}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Quick Stats Row */}
+          <div className="flex flex-wrap gap-2 mb-12">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-bg-tertiary text-xs text-text-secondary border border-border-default">
+              TAM: {formatLargeNumber(tamEstimate)}
+            </span>
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-bg-tertiary text-xs text-text-secondary border border-border-default">
+              Competitors: {competitorCount}
+            </span>
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-bg-tertiary text-xs text-text-secondary border border-border-default">
+              Risks: {riskCount}
+            </span>
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-bg-tertiary text-xs text-text-secondary border border-border-default">
+              Assumptions: {assumptionCount}
+            </span>
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-bg-tertiary text-xs text-text-secondary border border-border-default">
+              Contradictions: {contradictionCount}
+            </span>
+          </div>
+
           {/* Overview */}
           <section id="overview" className="mb-12">
             <ReportHeader report={report} />

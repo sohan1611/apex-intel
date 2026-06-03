@@ -3,14 +3,27 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronRight,
+  TrendingUp,
+  Users,
+  AlertTriangle,
+  FlaskConical,
+  Cog,
+  GitCompareArrows,
+  Target,
+  Lightbulb,
+  FileText,
+  Globe,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { MOCK_REPORTS_LIST } from '@/lib/mock-data';
 
-// Helpers
+// -- Helpers --
 
 function isValidUrl(str: string): boolean {
   try {
@@ -29,7 +42,45 @@ function formatDate(iso: string): string {
   });
 }
 
-// Analysis Input Page
+// -- Example data --
+
+const EXAMPLES: { type: 'text' | 'url'; label: string; content: string }[] = [
+  {
+    type: 'text',
+    label: 'Text Description',
+    content:
+      'AI-powered nutrition platform targeting diabetics with CGM integration and personalized meal planning',
+  },
+  {
+    type: 'url',
+    label: 'Company URL',
+    content: 'https://notion.so',
+  },
+  {
+    type: 'text',
+    label: 'Text Description',
+    content:
+      'B2B SaaS tool for automated compliance reporting in fintech, targeting Series A-C companies',
+  },
+];
+
+const EVALUATION_PILLS: { icon: React.ReactNode; label: string }[] = [
+  { icon: <TrendingUp className="h-3.5 w-3.5" />, label: 'Market Sizing' },
+  { icon: <Users className="h-3.5 w-3.5" />, label: 'Competition' },
+  { icon: <AlertTriangle className="h-3.5 w-3.5" />, label: 'Risk & Red Flags' },
+  { icon: <FlaskConical className="h-3.5 w-3.5" />, label: 'Assumptions' },
+  { icon: <Cog className="h-3.5 w-3.5" />, label: 'Execution' },
+  { icon: <GitCompareArrows className="h-3.5 w-3.5" />, label: 'Contradictions' },
+  { icon: <Target className="h-3.5 w-3.5" />, label: 'Investment Score' },
+];
+
+const TIPS = [
+  'Include target market and revenue model for best results',
+  'URLs are scraped for company data automatically',
+  'Analysis takes 2-3 minutes with 9 specialized agents',
+];
+
+// -- Page component --
 
 type InputMode = 'text' | 'url';
 
@@ -50,6 +101,17 @@ export default function AnalyzePage() {
     router.push('/analysis/mock-analysis-id');
   };
 
+  const handleExampleClick = (example: (typeof EXAMPLES)[number]) => {
+    if (example.type === 'text') {
+      setMode('text');
+      setTextValue(example.content);
+    } else {
+      setMode('url');
+      setUrlValue(example.content);
+      setUrlTouched(false);
+    }
+  };
+
   const recentReports = MOCK_REPORTS_LIST.slice(0, 3);
 
   return (
@@ -61,8 +123,8 @@ export default function AnalyzePage() {
       />
 
       <main className="flex-1 px-6 pb-16">
-        {/* Input Card */}
         <div className="mx-auto max-w-2xl">
+          {/* --- Input Card --- */}
           <form
             onSubmit={handleSubmit}
             className="rounded-lg border border-border-default bg-bg-secondary p-6 animate-fade-in"
@@ -158,9 +220,72 @@ export default function AnalyzePage() {
             </p>
           </form>
 
-          {/* Recent Analyses */}
+          {/* --- Try an Example --- */}
+          <div className="mt-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <h3 className="text-sm font-medium text-text-secondary mb-3">Try an Example</h3>
+            <div className="grid gap-2">
+              {EXAMPLES.map((example, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleExampleClick(example)}
+                  className="rounded-lg border border-border-default bg-bg-tertiary/50 hover:bg-bg-tertiary p-3 cursor-pointer transition-colors text-left group"
+                >
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-text-muted mb-1">
+                    {example.type === 'url' ? (
+                      <Globe className="h-3 w-3" />
+                    ) : (
+                      <FileText className="h-3 w-3" />
+                    )}
+                    {example.label}
+                  </span>
+                  <p className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
+                    {example.content}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* --- What We Evaluate --- */}
+          <div className="mt-8 animate-fade-in" style={{ animationDelay: '150ms' }}>
+            <h3 className="text-sm font-medium text-text-secondary mb-3">
+              What Apex Intel Evaluates
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {EVALUATION_PILLS.map((pill) => (
+                <span
+                  key={pill.label}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-secondary border border-border-default text-xs text-text-secondary"
+                >
+                  {pill.icon}
+                  {pill.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* --- Analysis Tips --- */}
+          <div className="mt-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div className="rounded-lg border border-border-default bg-bg-secondary p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Lightbulb className="h-4 w-4 text-text-muted" />
+                <h3 className="text-sm font-medium text-text-secondary">Analysis Tips</h3>
+              </div>
+              <ul className="space-y-2">
+                {TIPS.map((tip, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
+                    <span className="mt-1.5 h-1 w-1 rounded-full bg-text-muted flex-shrink-0" />
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* --- Recent Analyses --- */}
           {recentReports.length > 0 && (
-            <div className="mt-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div className="mt-10 animate-fade-in" style={{ animationDelay: '250ms' }}>
               <h3 className="text-sm font-medium text-text-tertiary mb-3">
                 Recent Analyses
               </h3>

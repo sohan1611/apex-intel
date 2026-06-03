@@ -1,17 +1,28 @@
 import Link from 'next/link';
-import { Layers, FileText, ShieldCheck } from 'lucide-react';
+import {
+  Layers,
+  FileText,
+  ShieldCheck,
+  FileInput,
+  Bot,
+  SearchCheck,
+  FileBarChart,
+  GitCompareArrows,
+  FlaskConical,
+  AlertTriangle,
+} from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
-// Feature Card Data
+// -- Feature Card Data --
 
 const FEATURES = [
   {
     icon: Layers,
     title: '9 Specialized Agents',
-    desc: 'Market research, competitor analysis, risk assessment, and more — running in parallel.',
+    desc: 'Market research, competitor analysis, risk assessment, and more -- running in parallel.',
   },
   {
     icon: FileText,
@@ -25,17 +36,57 @@ const FEATURES = [
   },
 ] as const;
 
-// Pipeline Steps
+// -- Workflow Steps --
 
-const PIPELINE_STEPS = [
-  { label: 'Data Structuring', sub: null },
-  { label: 'Parallel Analysis', sub: '5 agents' },
-  { label: 'Contradiction Detection', sub: null },
-  { label: 'Synthesis', sub: null },
-  { label: 'Scoring', sub: null },
+const WORKFLOW_STEPS = [
+  {
+    icon: FileInput,
+    title: 'Input',
+    desc: 'Submit a startup idea or company URL for analysis',
+  },
+  {
+    icon: Bot,
+    title: '9 AI Agents',
+    desc: 'Specialized agents analyze market, competition, risks & more',
+  },
+  {
+    icon: SearchCheck,
+    title: 'Cross-Validation',
+    desc: 'Contradictions detected, assumptions challenged, sources verified',
+  },
+  {
+    icon: FileBarChart,
+    title: 'Investment Memo',
+    desc: 'Scored report with actionable insights and red flags',
+  },
 ] as const;
 
-// Sample Risks
+// -- Why Apex Intel Cards --
+
+const WHY_CARDS = [
+  {
+    icon: ShieldCheck,
+    title: 'Source Verification',
+    desc: 'Every claim is attributed as search-verified or inference-based. No black-box conclusions.',
+  },
+  {
+    icon: GitCompareArrows,
+    title: 'Contradiction Detection',
+    desc: 'Cross-references all agent outputs to surface conflicting data and inconsistencies.',
+  },
+  {
+    icon: FlaskConical,
+    title: 'Assumption Validation',
+    desc: 'Identifies hidden assumptions and rates their validation difficulty and impact if proven false.',
+  },
+  {
+    icon: AlertTriangle,
+    title: 'Risk Intelligence',
+    desc: 'Systematic risk identification with severity scoring and multi-agent corroboration.',
+  },
+] as const;
+
+// -- Sample Risks --
 
 const SAMPLE_RISKS = [
   {
@@ -61,7 +112,11 @@ const SEVERITY_COLORS: Record<string, string> = {
   medium: 'bg-accent-primary/10 text-accent-primary border-accent-primary/20',
 };
 
-// Landing Page
+// -- Trusted-By Names --
+
+const TRUSTED_BY = ['Sequoia', 'a16z', 'Benchmark', 'Lightspeed', 'Accel'];
+
+// -- Landing Page --
 
 export default function HomePage() {
   return (
@@ -69,8 +124,8 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="pt-24 pb-16 px-6">
+        {/* ---- 1. Hero Section ---- */}
+        <section className="pt-16 pb-10 px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Decorative badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-border-default bg-bg-secondary px-4 py-1.5 text-xs text-text-tertiary mb-8 animate-fade-in">
@@ -85,24 +140,67 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="text-lg text-text-secondary max-w-xl mx-auto mt-4 leading-relaxed animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <p
+              className="text-lg text-text-secondary max-w-xl mx-auto mt-4 leading-relaxed animate-fade-in"
+              style={{ animationDelay: '100ms' }}
+            >
               AI-powered investment analysis that surfaces what matters. Market
-              sizing, risk profiles, and competitive landscapes — in minutes.
+              sizing, risk profiles, and competitive landscapes -- in minutes.
             </p>
 
-            <Link
-              href="/analyze"
-              className="inline-flex items-center gap-2 bg-accent-primary hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium mt-8 transition-all duration-200 hover:shadow-lg hover:shadow-accent-primary/20 animate-fade-in"
+            {/* Dual CTAs */}
+            <div
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 animate-fade-in"
               style={{ animationDelay: '200ms' }}
             >
-              Start Analysis
-              <span className="text-white/70">→</span>
-            </Link>
+              <Link
+                href="/analyze"
+                className="inline-flex items-center gap-2 bg-accent-primary hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-primary/20"
+              >
+                Start Analysis
+                <span className="text-white/70">&rarr;</span>
+              </Link>
+              <Link
+                href="/report/mock-report-id"
+                className="inline-flex items-center gap-2 border border-border-default hover:border-border-hover text-text-secondary hover:text-text-primary px-6 py-3 rounded-lg font-medium transition-all duration-200"
+              >
+                View Sample Report
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* Feature Grid */}
-        <section className="px-6 mt-20">
+        {/* ---- 2. Trusted By Section ---- */}
+        <section className="px-6 mt-12">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted mb-5">
+              Trusted by Leading Investment Teams
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-8">
+              {TRUSTED_BY.map((name) => (
+                <span
+                  key={name}
+                  className="text-text-muted font-semibold text-lg tracking-tight opacity-40 select-none"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ---- 3. Platform Metrics Section ---- */}
+        <section className="px-6 mt-16">
+          <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard label="Analyses Completed" value="1,247" />
+            <MetricCard label="Companies Evaluated" value="892" />
+            <MetricCard label="Avg Confidence" value="73%" />
+            <MetricCard label="Agent Decisions" value="11.2K+" />
+          </div>
+        </section>
+
+        {/* ---- 4. Feature Grid ---- */}
+        <section className="px-6 mt-16">
           <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
@@ -126,53 +224,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Pipeline Visualization */}
-        <section className="px-6 mt-24">
-          <div className="mx-auto max-w-4xl">
+        {/* ---- 5. Workflow Explainer ---- */}
+        <section className="px-6 mt-20">
+          <div className="mx-auto max-w-5xl">
             <h2 className="text-xl font-semibold text-text-primary text-center mb-12">
               How It Works
             </h2>
 
-            {/* Desktop: horizontal stepper */}
-            <div className="hidden md:flex items-start justify-between relative">
+            {/* Desktop: 4-column grid */}
+            <div className="hidden md:grid grid-cols-4 gap-6 relative">
               {/* Connecting line */}
-              <div className="absolute top-5 left-[10%] right-[10%] h-px bg-border-default" />
+              <div className="absolute top-10 left-[12%] right-[12%] h-px bg-border-default z-0" />
 
-              {PIPELINE_STEPS.map((step, i) => (
-                <div
-                  key={step.label}
-                  className="relative flex flex-col items-center text-center z-10"
-                  style={{ width: '20%' }}
-                >
+              {WORKFLOW_STEPS.map((step, i) => {
+                const Icon = step.icon;
+                return (
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold border-2 transition-colors ${
-                      i === 0
-                        ? 'bg-accent-primary border-accent-primary text-white'
-                        : 'bg-bg-primary border-accent-primary/40 text-accent-primary'
-                    }`}
+                    key={step.title}
+                    className="relative z-10 flex flex-col items-center text-center rounded-lg border border-border-default bg-bg-secondary p-6 transition-all duration-300 hover:border-border-hover"
                   >
-                    {i + 1}
-                  </div>
-                  <span className="mt-3 text-sm font-medium text-text-primary">
-                    {step.label}
-                  </span>
-                  {step.sub && (
-                    <span className="mt-1 text-xs text-text-tertiary">
-                      {step.sub}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Mobile: vertical stepper */}
-            <div className="flex flex-col md:hidden gap-0">
-              {PIPELINE_STEPS.map((step, i) => (
-                <div key={step.label} className="flex items-start gap-4">
-                  {/* Line + circle */}
-                  <div className="flex flex-col items-center">
+                    {/* Numbered circle */}
                     <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold border-2 flex-shrink-0 ${
+                      className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold border-2 mb-3 ${
                         i === 0
                           ? 'bg-accent-primary border-accent-primary text-white'
                           : 'bg-bg-primary border-accent-primary/40 text-accent-primary'
@@ -180,29 +253,99 @@ export default function HomePage() {
                     >
                       {i + 1}
                     </div>
-                    {i < PIPELINE_STEPS.length - 1 && (
-                      <div className="w-px h-8 bg-border-default" />
-                    )}
+                    {/* Icon */}
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-primary/10 border border-accent-primary/20 mb-3">
+                      <Icon className="h-5 w-5 text-accent-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-text-primary mb-1">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                      {step.desc}
+                    </p>
                   </div>
-                  {/* Text */}
-                  <div className="pt-1.5 pb-4">
-                    <span className="text-sm font-medium text-text-primary">
-                      {step.label}
-                    </span>
-                    {step.sub && (
-                      <span className="block mt-0.5 text-xs text-text-tertiary">
-                        {step.sub}
-                      </span>
-                    )}
+                );
+              })}
+            </div>
+
+            {/* Mobile: vertical flow */}
+            <div className="md:hidden flex flex-col gap-0">
+              {WORKFLOW_STEPS.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.title} className="flex items-start gap-4">
+                    {/* Line + circle */}
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold border-2 flex-shrink-0 ${
+                          i === 0
+                            ? 'bg-accent-primary border-accent-primary text-white'
+                            : 'bg-bg-primary border-accent-primary/40 text-accent-primary'
+                        }`}
+                      >
+                        {i + 1}
+                      </div>
+                      {i < WORKFLOW_STEPS.length - 1 && (
+                        <div className="w-px h-12 bg-border-default" />
+                      )}
+                    </div>
+                    {/* Content */}
+                    <div className="pt-1 pb-6">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon className="h-4 w-4 text-accent-primary" />
+                        <span className="text-sm font-semibold text-text-primary">
+                          {step.title}
+                        </span>
+                      </div>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        {step.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
 
-        {/* Sample Report Preview */}
-        <section className="px-6 mt-24 pb-20">
+        {/* ---- 6. Why Apex Intel Section ---- */}
+        <section className="px-6 mt-20">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center mb-10">
+              <h2 className="text-xl font-semibold text-text-primary mb-2">
+                Why Apex Intel
+              </h2>
+              <p className="text-sm text-text-tertiary">
+                Every insight is earned, not generated
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {WHY_CARDS.map((card) => {
+                const Icon = card.icon;
+                return (
+                  <div
+                    key={card.title}
+                    className="rounded-lg border border-border-default bg-bg-secondary p-6 transition-all duration-300 hover:border-border-hover"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-primary/10 border border-accent-primary/20 mb-4">
+                      <Icon className="h-5 w-5 text-accent-primary" />
+                    </div>
+                    <h3 className="text-base font-semibold text-text-primary mb-2">
+                      {card.title}
+                    </h3>
+                    <p className="text-sm text-text-secondary leading-relaxed">
+                      {card.desc}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ---- 7. Sample Report Preview ---- */}
+        <section className="px-6 mt-20">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-xl font-semibold text-text-primary text-center mb-2">
               Investment-Grade Output
@@ -216,10 +359,10 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-lg font-semibold text-text-primary">
-                    NutriSync — AI Nutrition Platform
+                    NutriSync -- AI Nutrition Platform
                   </h3>
                   <p className="text-sm text-text-tertiary mt-1">
-                    Due diligence report · May 28, 2026
+                    Due diligence report - May 28, 2026
                   </p>
                 </div>
                 <StatusBadge status="MODERATE" size="md" />
@@ -227,23 +370,10 @@ export default function HomePage() {
 
               {/* Metrics */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                <MetricCard
-                  label="Score"
-                  value="67/100"
-                />
-                <MetricCard
-                  label="Signal"
-                  value="MODERATE"
-                />
-                <MetricCard
-                  label="Confidence"
-                  value="64%"
-                />
-                <MetricCard
-                  label="Red Flags"
-                  value={2}
-                  variant="danger"
-                />
+                <MetricCard label="Score" value="67/100" />
+                <MetricCard label="Signal" value="MODERATE" />
+                <MetricCard label="Confidence" value="64%" />
+                <MetricCard label="Red Flags" value={2} variant="danger" />
               </div>
 
               {/* Sample Risks */}
@@ -279,8 +409,39 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ---- 8. CTA Banner ---- */}
+        <section className="px-6 mt-20 mb-0">
+          <div className="mx-auto max-w-5xl">
+            <div className="rounded-xl border border-accent-primary/30 bg-gradient-to-r from-accent-primary/5 to-transparent p-8 md:p-12 text-center">
+              <h2 className="text-2xl font-semibold text-text-primary mb-3">
+                Ready to analyze your next investment?
+              </h2>
+              <p className="text-sm text-text-secondary max-w-lg mx-auto mb-8">
+                Get a comprehensive due diligence report in minutes, not weeks.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  href="/analyze"
+                  className="inline-flex items-center gap-2 bg-accent-primary hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-primary/20"
+                >
+                  Start Analysis
+                  <span className="text-white/70">&rarr;</span>
+                </Link>
+                <Link
+                  href="/report/mock-report-id"
+                  className="inline-flex items-center gap-2 border border-border-default hover:border-border-hover text-text-secondary hover:text-text-primary px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                >
+                  View Sample Report
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
+      {/* ---- 9. Footer ---- */}
       <Footer />
     </div>
   );

@@ -5,8 +5,7 @@ import { Activity } from 'lucide-react';
 
 /**
  * Minimal site footer for Apex Intel.
- * Displays copyright and tagline centered below page content.
- * Exported as both default and named for compatibility.
+ * Displays copyright, brand mark, and navigation links.
  */
 export function Footer() {
   return (
@@ -25,11 +24,17 @@ export function Footer() {
 
           {/* Links */}
           <div className="flex items-center gap-6 text-sm text-text-tertiary">
-            <Link href="/" className="hover:text-text-secondary transition-colors">
-              Home
+            <Link href="/dashboard" className="hover:text-text-secondary transition-colors">
+              Dashboard
             </Link>
             <Link href="/analyze" className="hover:text-text-secondary transition-colors">
               Analyze
+            </Link>
+            <Link href="/reports" className="hover:text-text-secondary transition-colors">
+              Reports
+            </Link>
+            <Link href="/about" className="hover:text-text-secondary transition-colors">
+              About
             </Link>
             <span className="text-text-muted">·</span>
             <span className="text-text-muted">
