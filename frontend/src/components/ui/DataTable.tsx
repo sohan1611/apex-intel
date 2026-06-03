@@ -38,7 +38,7 @@ interface DataTableProps<T> {
  * and responsive horizontal scrolling on mobile.
  * Supports custom cell renderers for flexible content display.
  */
-export default function DataTable<T extends Record<string, unknown>>({
+export function DataTable<T extends Record<string, unknown>>({
   columns,
   data,
   onRowClick,

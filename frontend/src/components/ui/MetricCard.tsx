@@ -18,7 +18,7 @@ const variantStyles: Record<string, string> = {
   success: 'text-emerald-400',
 };
 
-export default function MetricCard({
+export function MetricCard({
   label,
   value,
   subtitle,

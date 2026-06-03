@@ -2,19 +2,23 @@ import {
   Lightbulb,
   Users,
   DollarSign,
-  Calendar,
-  MapPin,
-  Banknote,
 } from 'lucide-react';
-import type { CompanyBrief } from '@/types/report';
+
+interface CompanyBriefData {
+  core_value_prop?: string;
+  target_customer_segment?: string;
+  revenue_model?: string;
+  industry?: string;
+  product_type?: string;
+}
 
 interface CompanyBriefSectionProps {
-  brief: CompanyBrief | null;
+  brief: CompanyBriefData | undefined;
 }
 
 /**
  * Displays company brief information: value proposition, target customer,
- * and revenue model in a three-column card layout with optional metadata pills.
+ * and revenue model in a three-column card layout.
  */
 export default function CompanyBriefSection({ brief }: CompanyBriefSectionProps) {
   if (!brief) {
@@ -29,12 +33,12 @@ export default function CompanyBriefSection({ brief }: CompanyBriefSectionProps)
     {
       label: 'Value Proposition',
       icon: Lightbulb,
-      value: brief.value_proposition,
+      value: brief.core_value_prop,
     },
     {
       label: 'Target Customer',
       icon: Users,
-      value: brief.target_customer,
+      value: brief.target_customer_segment,
     },
     {
       label: 'Revenue Model',
@@ -42,12 +46,6 @@ export default function CompanyBriefSection({ brief }: CompanyBriefSectionProps)
       value: brief.revenue_model,
     },
   ];
-
-  const hasMetadata =
-    brief.founding_year ||
-    brief.headquarters ||
-    brief.employee_count ||
-    brief.funding_stage;
 
   return (
     <div>
@@ -64,41 +62,12 @@ export default function CompanyBriefSection({ brief }: CompanyBriefSectionProps)
                 {card.label}
               </p>
               <p className="text-sm text-text-primary leading-relaxed">
-                {card.value}
+                {card.value ?? '—'}
               </p>
             </div>
           );
         })}
       </div>
-
-      {hasMetadata && (
-        <div className="flex flex-wrap gap-2 mt-4">
-          {brief.founding_year && (
-            <span className="bg-bg-secondary text-text-tertiary text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5">
-              <Calendar className="h-3 w-3" />
-              {brief.founding_year}
-            </span>
-          )}
-          {brief.headquarters && (
-            <span className="bg-bg-secondary text-text-tertiary text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5">
-              <MapPin className="h-3 w-3" />
-              {brief.headquarters}
-            </span>
-          )}
-          {brief.employee_count && (
-            <span className="bg-bg-secondary text-text-tertiary text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5">
-              <Users className="h-3 w-3" />
-              {brief.employee_count} employees
-            </span>
-          )}
-          {brief.funding_stage && (
-            <span className="bg-bg-secondary text-text-tertiary text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5">
-              <Banknote className="h-3 w-3" />
-              {brief.funding_stage}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }

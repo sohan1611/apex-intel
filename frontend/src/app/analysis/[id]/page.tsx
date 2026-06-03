@@ -12,9 +12,7 @@ import { AgentActivityLog } from '@/features/dashboard/AgentActivityLog';
 import { MOCK_PIPELINE_PHASES, MOCK_AGENT_LOGS } from '@/lib/mock-data';
 import type { PipelinePhase, AgentLogEntry } from '@/types/report';
 
-// ──────────────────────────────────────────────
 // Additional logs for later phases
-// ──────────────────────────────────────────────
 
 const EXTENDED_LOGS: AgentLogEntry[] = [
   {
@@ -110,9 +108,7 @@ const EXTENDED_LOGS: AgentLogEntry[] = [
   },
 ];
 
-// ──────────────────────────────────────────────
 // Simulation Logic
-// ──────────────────────────────────────────────
 
 /** Progress simulation states for each phase */
 const SIMULATION_TIMELINE = [
@@ -171,9 +167,7 @@ function deriveAgentStatuses(
   };
 }
 
-// ──────────────────────────────────────────────
 // Page Component
-// ──────────────────────────────────────────────
 
 export default function AnalysisDashboardPage() {
   const [tick, setTick] = useState(0);
@@ -238,7 +232,7 @@ export default function AnalysisDashboardPage() {
             </div>
           </div>
 
-          {/* ─── Completion Banner ─────────────────── */}
+          {/* Completion Banner */}
           <div
             className={cn(
               'mt-8 overflow-hidden transition-all duration-700 ease-out',

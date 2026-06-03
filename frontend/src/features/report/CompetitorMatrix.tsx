@@ -1,8 +1,8 @@
-import SourceTag from '@/components/ui/SourceTag';
+import { SourceTag } from '@/components/ui/SourceTag';
 import type { CompetitorEntry } from '@/types/report';
 
 interface CompetitorMatrixProps {
-  competitors: CompetitorEntry[];
+  competitors: CompetitorEntry[] | undefined;
 }
 
 /**

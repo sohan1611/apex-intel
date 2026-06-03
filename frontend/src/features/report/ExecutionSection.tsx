@@ -2,12 +2,12 @@
 
 import React from 'react';
 import type { ExecutionFeasibility } from '@/types/report';
-import SeverityBadge from '@/components/ui/SeverityBadge';
-import SourceTag from '@/components/ui/SourceTag';
+import { SeverityBadge } from '@/components/ui/SeverityBadge';
+import { SourceTag } from '@/components/ui/SourceTag';
 import { Settings, DollarSign, Clock } from 'lucide-react';
 
 interface ExecutionSectionProps {
-  execution: ExecutionFeasibility | null;
+  execution: ExecutionFeasibility | null | undefined;
 }
 
 export default function ExecutionSection({ execution }: ExecutionSectionProps) {
@@ -48,7 +48,7 @@ export default function ExecutionSection({ execution }: ExecutionSectionProps) {
             Time to Market
           </div>
           <span className="text-sm font-medium text-text-primary">
-            {execution.time_to_market}
+            {execution.time_to_market_estimate ?? '—'}
           </span>
         </div>
       </div>

@@ -18,7 +18,7 @@ interface ScoreGaugeProps {
  * Color transitions: red (<50) → amber (50-74) → green (≥75).
  * Animates on mount with a smooth stroke-dashoffset transition.
  */
-export default function ScoreGauge({ score, label, size = 'lg', className }: ScoreGaugeProps) {
+export function ScoreGauge({ score, label, size = 'lg', className }: ScoreGaugeProps) {
   const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
 
   // SVG dimensions

@@ -1,12 +1,12 @@
 import { Info, TrendingUp } from 'lucide-react';
-import MetricCard from '@/components/ui/MetricCard';
-import ConfidenceBar from '@/components/ui/ConfidenceBar';
-import SourceTag from '@/components/ui/SourceTag';
+import { MetricCard } from '@/components/ui/MetricCard';
+import { ConfidenceBar } from '@/components/ui/ConfidenceBar';
+import { SourceTag } from '@/components/ui/SourceTag';
 import { formatCurrency } from '@/lib/utils';
 import type { MarketAnalysis } from '@/types/report';
 
 interface MarketAnalysisSectionProps {
-  market: MarketAnalysis | null;
+  market: MarketAnalysis | null | undefined;
 }
 
 /**
@@ -28,15 +28,15 @@ export default function MarketAnalysisSection({ market }: MarketAnalysisSectionP
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           label="Total Addressable Market"
-          value={formatCurrency(market.tam)}
+          value={formatCurrency(market.tam_estimate)}
         />
         <MetricCard
           label="Serviceable Addressable Market"
-          value={formatCurrency(market.sam)}
+          value={formatCurrency(market.sam_estimate)}
         />
         <MetricCard
           label="Serviceable Obtainable Market"
-          value={formatCurrency(market.som)}
+          value={formatCurrency(market.som_estimate)}
         />
       </div>
 
@@ -49,7 +49,7 @@ export default function MarketAnalysisSection({ market }: MarketAnalysisSectionP
       </div>
 
       {/* Uncertainty Factors */}
-      {market.uncertainty_factors && (
+      {market.uncertainty_factor && (
         <div className="bg-blue-500/5 border-l-2 border-blue-500 p-4 rounded-r-lg mt-4">
           <div className="flex items-center gap-1.5 mb-1">
             <Info className="h-3.5 w-3.5 text-blue-400" />
@@ -58,7 +58,7 @@ export default function MarketAnalysisSection({ market }: MarketAnalysisSectionP
             </span>
           </div>
           <p className="text-sm text-text-secondary leading-relaxed">
-            {market.uncertainty_factors}
+            {market.uncertainty_factor}
           </p>
         </div>
       )}

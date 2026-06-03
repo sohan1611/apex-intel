@@ -78,7 +78,8 @@ export interface ScoreBreakdown {
   competition_intensity: number;
   execution_feasibility: number;
   risk_exposure: number;
-  total: number;
+  total?: number;
+  total_score?: number;
   investment_signal: SignalStrength;
   justification: string;
   // Convenience aliases for UI
@@ -116,6 +117,47 @@ export interface RedFlag {
   flag: string;
   severity: string;
   related_agents: string[];
+}
+
+/** Severity level type */
+export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
+/** Risk entry from skeptic analysis */
+export interface RiskEntry {
+  risk: string;
+  severity: string;
+  rationale: string;
+  source: string;
+}
+
+/** Company brief from data structuring agent */
+export interface CompanyBrief {
+  core_value_prop: string;
+  target_customer_segment: string;
+  revenue_model: string;
+  industry?: string;
+  product_type?: string;
+}
+
+/** Market analysis from market research agent */
+export interface MarketAnalysis {
+  tam_estimate: number;
+  sam_estimate: number;
+  som_estimate: number;
+  market_trends: { trend: string; source: string }[];
+  confidence_score: number;
+  uncertainty_factor: string;
+}
+
+/** Competitor entry from competitor analysis agent */
+export interface CompetitorEntry {
+  name: string;
+  company_name?: string;
+  pricing: string;
+  positioning: string;
+  strengths: string[];
+  weaknesses: string[];
+  source: string;
 }
 
 // ──────────────────────────────────────────────

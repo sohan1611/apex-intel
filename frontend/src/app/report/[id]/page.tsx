@@ -1,6 +1,6 @@
 'use client';
 
-import Navbar from '@/components/Navbar';
+import { Navbar } from '@/components/layout/Navbar';
 import ReportSidebar from '@/features/report/ReportSidebar';
 import MobileTabBar from '@/features/report/MobileTabBar';
 import ReportHeader from '@/features/report/ReportHeader';
@@ -21,18 +21,6 @@ import { MOCK_REPORT } from '@/lib/mock-data';
  *
  * Displays a full investment analysis report with a fixed sidebar navigation
  * on desktop and a sticky horizontal tab bar on mobile.
- *
- * Sections are ordered by importance:
- * 1. Overview (header + signal card)
- * 2. Red Flags (if any)
- * 3. Company Brief
- * 4. Market Analysis
- * 5. Competitors
- * 6. Risk Analysis
- * 7. Assumptions
- * 8. Execution
- * 9. Contradictions
- * 10. Score Breakdown
  */
 export default function ReportPage() {
   const report = MOCK_REPORT;
@@ -45,69 +33,69 @@ export default function ReportPage() {
 
       <main className="lg:ml-56 p-6 lg:p-10">
         <div className="max-w-4xl mx-auto">
-          {/* ─── Overview ──────────────────────────────────────────── */}
+          {/* Overview */}
           <section id="overview" className="mb-12">
             <ReportHeader report={report} />
             <div className="mt-6">
               <InvestmentSignalCard
-                signal={report.score.investment_signal}
-                score={report.score.total_score}
-                confidence={report.overall_confidence_score}
+                signal={report.score?.investment_signal ?? report.investment_signal ?? 'MODERATE'}
+                score={report.score?.total_score ?? report.investmentScore ?? 0}
+                confidence={report.overall_confidence_score ?? 0}
               />
             </div>
           </section>
 
-          {/* ─── Red Flags ─────────────────────────────────────────── */}
-          {report.red_flags.length > 0 && (
+          {/* Red Flags */}
+          {report.red_flags && report.red_flags.length > 0 && (
             <section id="red-flags" className="mb-12">
               <SectionTitle title="Red Flags" />
               <RedFlagsPanel flags={report.red_flags} />
             </section>
           )}
 
-          {/* ─── Company Brief ─────────────────────────────────────── */}
+          {/* Company Brief */}
           <section id="company-brief" className="mb-12">
             <SectionTitle title="Company Brief" />
             <CompanyBriefSection brief={report.company_brief} />
           </section>
 
-          {/* ─── Market Analysis ───────────────────────────────────── */}
+          {/* Market Analysis */}
           <section id="market-analysis" className="mb-12">
             <SectionTitle title="Market Analysis" />
             <MarketAnalysisSection market={report.market_analysis} />
           </section>
 
-          {/* ─── Competitors ───────────────────────────────────────── */}
+          {/* Competitors */}
           <section id="competitors" className="mb-12">
             <SectionTitle title="Competitors" />
             <CompetitorMatrix competitors={report.competitors} />
           </section>
 
-          {/* ─── Risk Analysis ─────────────────────────────────────── */}
+          {/* Risk Analysis */}
           <section id="risk-analysis" className="mb-12">
             <SectionTitle title="Risk Analysis" />
-            <RiskAnalysisSection risks={report.risks} />
+            <RiskAnalysisSection risks={report.skeptic_analysis ?? []} />
           </section>
 
-          {/* ─── Assumptions ───────────────────────────────────────── */}
+          {/* Assumptions */}
           <section id="assumptions" className="mb-12">
             <SectionTitle title="Assumptions" />
-            <AssumptionTable assumptions={report.assumptions} />
+            <AssumptionTable assumptions={report.assumptions ?? []} />
           </section>
 
-          {/* ─── Execution ─────────────────────────────────────────── */}
+          {/* Execution */}
           <section id="execution" className="mb-12">
             <SectionTitle title="Execution Feasibility" />
-            <ExecutionSection execution={report.execution} />
+            <ExecutionSection execution={report.execution_feasibility} />
           </section>
 
-          {/* ─── Contradictions ────────────────────────────────────── */}
+          {/* Contradictions */}
           <section id="contradictions" className="mb-12">
             <SectionTitle title="Contradictions" />
-            <ContradictionsSection contradictions={report.contradictions} />
+            <ContradictionsSection contradictions={report.contradictions ?? []} />
           </section>
 
-          {/* ─── Score Breakdown ───────────────────────────────────── */}
+          {/* Score Breakdown */}
           <section id="score-breakdown" className="mb-12">
             <SectionTitle title="Score Breakdown" />
             <ScoreBreakdown score={report.score} />

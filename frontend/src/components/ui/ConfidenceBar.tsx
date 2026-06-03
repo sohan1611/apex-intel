@@ -8,7 +8,7 @@ interface ConfidenceBarProps {
   label?: string;
 }
 
-export default function ConfidenceBar({ value, label }: ConfidenceBarProps) {
+export function ConfidenceBar({ value, label }: ConfidenceBarProps) {
   const percentage = Math.round(Math.min(Math.max(value, 0), 1) * 100);
 
   return (

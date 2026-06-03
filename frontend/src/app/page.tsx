@@ -5,9 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
-// ──────────────────────────────────────────────
 // Feature Card Data
-// ──────────────────────────────────────────────
 
 const FEATURES = [
   {
@@ -27,9 +25,7 @@ const FEATURES = [
   },
 ] as const;
 
-// ──────────────────────────────────────────────
 // Pipeline Steps
-// ──────────────────────────────────────────────
 
 const PIPELINE_STEPS = [
   { label: 'Data Structuring', sub: null },
@@ -39,9 +35,7 @@ const PIPELINE_STEPS = [
   { label: 'Scoring', sub: null },
 ] as const;
 
-// ──────────────────────────────────────────────
 // Sample Risks
-// ──────────────────────────────────────────────
 
 const SAMPLE_RISKS = [
   {
@@ -67,9 +61,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   medium: 'bg-accent-primary/10 text-accent-primary border-accent-primary/20',
 };
 
-// ──────────────────────────────────────────────
 // Landing Page
-// ──────────────────────────────────────────────
 
 export default function HomePage() {
   return (
@@ -77,7 +69,7 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* ─── Hero Section ───────────────────────── */}
+        {/* Hero Section */}
         <section className="pt-24 pb-16 px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Decorative badge */}
@@ -109,7 +101,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── Feature Grid ──────────────────────── */}
+        {/* Feature Grid */}
         <section className="px-6 mt-20">
           <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
             {FEATURES.map((feature) => {
@@ -134,7 +126,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── Pipeline Visualization ────────────── */}
+        {/* Pipeline Visualization */}
         <section className="px-6 mt-24">
           <div className="mx-auto max-w-4xl">
             <h2 className="text-xl font-semibold text-text-primary text-center mb-12">
@@ -209,7 +201,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── Sample Report Preview ─────────────── */}
+        {/* Sample Report Preview */}
         <section className="px-6 mt-24 pb-20">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-xl font-semibold text-text-primary text-center mb-2">
@@ -237,25 +229,20 @@ export default function HomePage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 <MetricCard
                   label="Score"
-                  value={67}
-                  suffix="/100"
-                  colorClass="text-signal-moderate"
+                  value="67/100"
                 />
                 <MetricCard
                   label="Signal"
                   value="MODERATE"
-                  colorClass="text-signal-moderate"
                 />
                 <MetricCard
                   label="Confidence"
-                  value="64"
-                  suffix="%"
-                  colorClass="text-text-primary"
+                  value="64%"
                 />
                 <MetricCard
                   label="Red Flags"
                   value={2}
-                  colorClass="text-signal-weak"
+                  variant="danger"
                 />
               </div>
 

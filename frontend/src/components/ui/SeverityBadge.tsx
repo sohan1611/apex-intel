@@ -4,7 +4,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface SeverityBadgeProps {
-  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  severity: string;
 }
 
 const severityStyles: Record<string, string> = {
@@ -13,7 +13,7 @@ const severityStyles: Record<string, string> = {
   LOW: 'bg-blue-500/15 text-blue-400',
 };
 
-export default function SeverityBadge({ severity }: SeverityBadgeProps) {
+export function SeverityBadge({ severity }: SeverityBadgeProps) {
   return (
     <span
       className={cn(

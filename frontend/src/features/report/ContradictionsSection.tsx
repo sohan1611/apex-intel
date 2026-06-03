@@ -25,7 +25,7 @@ export default function ContradictionsSection({ contradictions }: Contradictions
   return (
     <div>
       {contradictions.map((item, index) => {
-        const isResolved = item.resolved;
+        const isResolved = !!item.resolution_or_flag;
 
         return (
           <div

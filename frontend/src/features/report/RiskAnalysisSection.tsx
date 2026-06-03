@@ -1,17 +1,24 @@
 'use client';
 
-import type { RiskEntry, Severity } from '@/types/report';
-import SeverityBadge from '@/components/ui/SeverityBadge';
-import SourceTag from '@/components/ui/SourceTag';
+import { SeverityBadge } from '@/components/ui/SeverityBadge';
+import { SourceTag } from '@/components/ui/SourceTag';
 
-interface RiskAnalysisSectionProps {
-  risks: RiskEntry[];
+interface RiskEntryData {
+  risk: string;
+  severity: string;
+  rationale: string;
+  source: string;
 }
 
-const severityOrder: Record<Severity, number> = {
-  HIGH: 0,
-  MEDIUM: 1,
-  LOW: 2,
+interface RiskAnalysisSectionProps {
+  risks: RiskEntryData[];
+}
+
+const severityOrder: Record<string, number> = {
+  CRITICAL: 0,
+  HIGH: 1,
+  MEDIUM: 2,
+  LOW: 3,
 };
 
 export default function RiskAnalysisSection({ risks }: RiskAnalysisSectionProps) {
@@ -36,7 +43,7 @@ export default function RiskAnalysisSection({ risks }: RiskAnalysisSectionProps)
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <SeverityBadge severity={risk.severity} />
-              <span className="font-medium text-text-primary">{risk.risk_title}</span>
+              <span className="font-medium text-text-primary text-sm">{risk.risk}</span>
             </div>
             <SourceTag source={risk.source} />
           </div>

@@ -1,5 +1,5 @@
-import SignalBadge from '@/components/ui/SignalBadge';
-import ConfidenceBar from '@/components/ui/ConfidenceBar';
+import { SignalBadge } from '@/components/ui/SignalBadge';
+import { ConfidenceBar } from '@/components/ui/ConfidenceBar';
 import { formatPercentage } from '@/lib/utils';
 
 interface InvestmentSignalCardProps {

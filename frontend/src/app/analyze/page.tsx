@@ -10,9 +10,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { MOCK_REPORTS_LIST } from '@/lib/mock-data';
 
-// ──────────────────────────────────────────────
 // Helpers
-// ──────────────────────────────────────────────
 
 function isValidUrl(str: string): boolean {
   try {
@@ -31,9 +29,7 @@ function formatDate(iso: string): string {
   });
 }
 
-// ──────────────────────────────────────────────
 // Analysis Input Page
-// ──────────────────────────────────────────────
 
 type InputMode = 'text' | 'url';
 
@@ -65,7 +61,7 @@ export default function AnalyzePage() {
       />
 
       <main className="flex-1 px-6 pb-16">
-        {/* ─── Input Card ─────────────────────────── */}
+        {/* Input Card */}
         <div className="mx-auto max-w-2xl">
           <form
             onSubmit={handleSubmit}
@@ -162,7 +158,7 @@ export default function AnalyzePage() {
             </p>
           </form>
 
-          {/* ─── Recent Analyses ────────────────────── */}
+          {/* Recent Analyses */}
           {recentReports.length > 0 && (
             <div className="mt-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
               <h3 className="text-sm font-medium text-text-tertiary mb-3">

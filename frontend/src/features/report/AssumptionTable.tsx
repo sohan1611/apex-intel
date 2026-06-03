@@ -3,7 +3,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import type { AssumptionEntry } from '@/types/report';
-import SourceTag from '@/components/ui/SourceTag';
+import { SourceTag } from '@/components/ui/SourceTag';
 
 interface AssumptionTableProps {
   assumptions: AssumptionEntry[];

@@ -19,6 +19,7 @@
 
   /* ── Borders ──────────────────────────────── */
   --color-border-default: #27272A;
+  --color-border-subtle: #27272A;
   --color-border-hover: #3F3F46;
 
   /* ── Accent ───────────────────────────────── */

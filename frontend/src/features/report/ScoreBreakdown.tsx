@@ -3,10 +3,10 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import type { ScoreBreakdown as ScoreBreakdownType } from '@/types/report';
-import SignalBadge from '@/components/ui/SignalBadge';
+import { SignalBadge } from '@/components/ui/SignalBadge';
 
 interface ScoreBreakdownProps {
-  score: ScoreBreakdownType;
+  score: ScoreBreakdownType | undefined;
 }
 
 function getBarColor(value: number, max: number): string {
@@ -17,6 +17,8 @@ function getBarColor(value: number, max: number): string {
 }
 
 export default function ScoreBreakdown({ score }: ScoreBreakdownProps) {
+  if (!score) return null;
+
   const dimensions = [
     { label: 'Market Opportunity', value: score.market_opportunity, max: 30 },
     { label: 'Competition Intensity', value: score.competition_intensity, max: 25 },
@@ -51,7 +53,7 @@ export default function ScoreBreakdown({ score }: ScoreBreakdownProps) {
       <div className="border-t border-border-default pt-6 mt-6">
         <div className="flex items-center gap-6">
           <span className="text-5xl font-mono font-bold text-text-primary">
-            {score.total_score}
+            {score.total_score ?? score.total ?? 0}
             <span className="text-2xl text-text-tertiary">/100</span>
           </span>
           <SignalBadge signal={score.investment_signal} />

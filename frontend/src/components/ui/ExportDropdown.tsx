@@ -18,7 +18,7 @@ interface ExportDropdownProps {
  * Closes on outside click. Currently triggers mock downloads
  * that will be connected to real export APIs later.
  */
-export default function ExportDropdown({ reportId, reportTitle, className }: ExportDropdownProps) {
+export function ExportDropdown({ reportId, reportTitle, className }: ExportDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

@@ -3,11 +3,11 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import type { RedFlag } from '@/types/report';
-import SeverityBadge from '@/components/ui/SeverityBadge';
+import { SeverityBadge } from '@/components/ui/SeverityBadge';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 interface RedFlagsPanelProps {
-  flags: RedFlag[];
+  flags: RedFlag[] | undefined;
 }
 
 export default function RedFlagsPanel({ flags }: RedFlagsPanelProps) {

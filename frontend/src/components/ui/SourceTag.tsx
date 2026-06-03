@@ -11,7 +11,11 @@ import {
   Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { SourceTag as SourceTagType } from '@/types/report';
+
+/** Source can be a structured object or a plain string */
+type SourceInput =
+  | { source_type: string; label?: string; url?: string }
+  | string;
 
 const sourceConfig: Record<
   string,
@@ -36,6 +40,10 @@ const sourceConfig: Record<
     icon: Building2,
     className: 'bg-slate-500/10 text-slate-400',
   },
+  inferred: {
+    icon: Brain,
+    className: 'bg-indigo-500/10 text-indigo-400',
+  },
 };
 
 function formatSourceType(type: string): string {
@@ -44,14 +52,37 @@ function formatSourceType(type: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-interface SourceTagProps {
-  source: SourceTagType;
+/** Parse a source string like "web_search: Some label" into type + label */
+function parseSourceString(raw: string): { source_type: string; label: string } {
+  const colonIndex = raw.indexOf(':');
+  if (colonIndex > 0) {
+    const prefix = raw.slice(0, colonIndex).trim().toLowerCase().replace(/\s+/g, '_');
+    const label = raw.slice(colonIndex + 1).trim();
+    // Check if prefix is a known source type
+    if (sourceConfig[prefix]) {
+      return { source_type: prefix, label: label || formatSourceType(prefix) };
+    }
+  }
+  // Fallback: try to match known prefixes
+  const lower = raw.toLowerCase();
+  if (lower.startsWith('web_search') || lower.startsWith('web search')) return { source_type: 'web_search', label: raw };
+  if (lower.startsWith('inferred')) return { source_type: 'inferred', label: raw };
+  return { source_type: 'internal', label: raw };
 }
 
-export default function SourceTag({ source }: SourceTagProps) {
-  const config = sourceConfig[source.source_type] ?? sourceConfig.internal;
+interface SourceTagProps {
+  source: SourceInput;
+}
+
+export function SourceTag({ source }: SourceTagProps) {
+  // Normalize source to object form
+  const normalized = typeof source === 'string'
+    ? parseSourceString(source)
+    : source;
+
+  const config = sourceConfig[normalized.source_type] ?? sourceConfig.internal;
   const Icon = config.icon;
-  const label = source.label ?? formatSourceType(source.source_type);
+  const label = normalized.label ?? formatSourceType(normalized.source_type);
 
   const content = (
     <span
@@ -61,11 +92,11 @@ export default function SourceTag({ source }: SourceTagProps) {
       )}
     >
       <Icon className="w-3 h-3" />
-      {label}
+      <span className="truncate max-w-[200px]">{label}</span>
     </span>
   );
 
-  if (source.url) {
+  if (typeof source !== 'string' && source.url) {
     return (
       <a
         href={source.url}
