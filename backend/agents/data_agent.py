@@ -21,6 +21,7 @@ objective, structured facts about the business.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.core.prompts import (
@@ -58,6 +59,15 @@ class DataAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "core_value_prop": "Unknown",
+            "target_customer_segment": "Unknown",
+            "revenue_model": "Unknown",
+            "industry": "Unknown",
+            "product_type": "Unknown",
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute data structuring analysis.

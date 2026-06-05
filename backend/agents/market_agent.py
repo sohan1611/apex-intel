@@ -21,6 +21,7 @@ to produce TAM / SAM / SOM estimates and market trend analysis.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.core.prompts import (
@@ -48,6 +49,16 @@ class MarketAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "tam_estimate": None,
+            "sam_estimate": None,
+            "som_estimate": None,
+            "market_trends": [],
+            "confidence_score": 0.0,
+            "uncertainty_factor": "Unknown due to analysis failure",
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute market research analysis.

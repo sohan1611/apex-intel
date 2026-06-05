@@ -45,6 +45,13 @@ import re
 
 import httpx
 from bs4 import BeautifulSoup
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
 
 # ── Logger ────────────────────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
@@ -108,6 +115,12 @@ class ScrapingService:
     # ══════════════════════════════════════════════════════════════════════
     # Core method: scrape_url
     # ══════════════════════════════════════════════════════════════════════
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     async def scrape_url(self, url: str) -> str | None:
         """Fetch a URL and return its cleaned text content.
 
@@ -172,9 +185,9 @@ class ScrapingService:
                 response.raise_for_status()
                 return response.text
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as exc:
             logger.error("[ScrapingService] Timeout fetching: %s", url)
-            return None
+            raise exc
 
         except httpx.HTTPStatusError as exc:
             logger.error(
@@ -183,20 +196,20 @@ class ScrapingService:
                 url,
                 exc.response.text[:200],
             )
-            return None
+            raise exc
 
         except httpx.RequestError as exc:
             # Covers DNS failures, connection refused, etc.
             logger.error(
                 "[ScrapingService] Request error for %s: %s", url, exc
             )
-            return None
+            raise exc
 
         except Exception as exc:
             logger.error(
                 "[ScrapingService] Unexpected error scraping %s: %s", url, exc
             )
-            return None
+            raise exc
 
     # ══════════════════════════════════════════════════════════════════════
     # Private: HTML → clean text

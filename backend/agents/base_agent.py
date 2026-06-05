@@ -26,6 +26,13 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 from openai import AsyncOpenAI
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
 
 from backend.config.settings import settings
 
@@ -84,12 +91,25 @@ class BaseAgent(ABC):
         """
         ...
 
+    def fallback_default(self) -> dict[str, Any]:
+        """
+        Return a minimal valid fallback schema if the agent completely fails.
+        Subclasses should override this to provide a schema-compliant fallback.
+        """
+        return {}
+
     # ─────────────────────────────────────────────────────────────────
     #  Shared utilities
     # ─────────────────────────────────────────────────────────────────
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     async def _call_llm(self, user_prompt: str) -> str:
         """
-        Send a prompt to the OpenAI Chat Completions API.
+        Send a prompt to the OpenAI Chat Completions API with retries.
 
         Parameters
         ----------
@@ -130,6 +150,7 @@ class BaseAgent(ABC):
           2. JSON inside ```json ... ``` blocks
           3. JSON inside ``` ... ``` blocks (no language tag)
           4. JSON embedded in surrounding prose text
+          5. Common trailing commas and missing brackets (basic cleanup)
 
         Parameters
         ----------
@@ -147,33 +168,37 @@ class BaseAgent(ABC):
 
         text = raw.strip()
 
-        # ── Attempt 1: Direct JSON parse ─────────────────────────────
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            pass
+        # Try multiple regex-based extractions if direct parse fails
+        attempts = [text]
 
-        # ── Attempt 2: Extract from markdown code fences ─────────────
-        # Matches ```json\n...\n``` or ```\n...\n```
+        # Extract from markdown code fences
         fence_pattern = r"```(?:json)?\s*\n(.*?)\n\s*```"
-        match = re.search(fence_pattern, text, re.DOTALL)
-        if match:
-            try:
-                return json.loads(match.group(1).strip())
-            except json.JSONDecodeError:
-                pass
+        match_fence = re.search(fence_pattern, text, re.DOTALL)
+        if match_fence:
+            attempts.append(match_fence.group(1).strip())
 
-        # ── Attempt 3: Find any JSON object in the text ──────────────
-        # Look for the first { ... } block
+        # Extract first JSON object block
         brace_pattern = r"\{.*\}"
-        match = re.search(brace_pattern, text, re.DOTALL)
-        if match:
+        match_brace = re.search(brace_pattern, text, re.DOTALL)
+        if match_brace:
+            attempts.append(match_brace.group(0))
+
+        for attempt in attempts:
+            # 1. Direct parse
             try:
-                return json.loads(match.group(0))
+                return json.loads(attempt)
+            except json.JSONDecodeError:
+                pass
+            
+            # 2. Cleanup basic issues (e.g., trailing commas, unescaped quotes)
+            cleaned = re.sub(r',\s*\}', '}', attempt)
+            cleaned = re.sub(r',\s*\]', ']', cleaned)
+            try:
+                return json.loads(cleaned)
             except json.JSONDecodeError:
                 pass
 
-        # ── All attempts failed ──────────────────────────────────────
+        # All attempts failed
         logger.warning(
             "[%s] Failed to parse JSON from LLM response: %s",
             self.agent_name,
@@ -183,33 +208,10 @@ class BaseAgent(ABC):
 
     def _build_error_output(self, error_message: str) -> dict[str, Any]:
         """
-        Create a standardised error output dictionary.
-
-        This ensures that ALL agents report failures in the same
-        shape, making it easy for the orchestrator to detect and
-        handle errors uniformly.
-
-        Parameters
-        ----------
-        error_message : str
-            Human-readable description of what went wrong.
-
-        Returns
-        -------
-        dict
-            Standardised error dict:
-            ```
-            {
-                "agent": "<agent_name>",
-                "status": "error",
-                "error": "<error_message>",
-                "data": None
-            }
-            ```
+        Create a standardised error output dictionary containing fallback data.
         """
-        return {
-            "agent": self.agent_name,
-            "status": "error",
-            "error": error_message,
-            "data": None,
-        }
+        fallback = self.fallback_default()
+        fallback["status"] = "partial_failure"
+        fallback["agent"] = self.agent_name
+        fallback["error"] = error_message
+        return fallback

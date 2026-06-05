@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.core.prompts import (
@@ -60,6 +61,20 @@ class SynthesizerAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "overall_confidence_score": 0.0,
+            "executive_summary": "Analysis failed.",
+            "market_overview": {},
+            "competitive_landscape": {},
+            "risk_assessment": {},
+            "assumptions_summary": {},
+            "execution_assessment": {},
+            "contradictions_found": [],
+            "red_flags": [],
+            "recommendation": "Analysis failed. Cannot provide recommendation.",
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute synthesis of all analysis outputs.

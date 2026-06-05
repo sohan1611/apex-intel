@@ -17,6 +17,7 @@ and external search results.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.core.prompts import (
@@ -45,6 +46,11 @@ class CompetitorAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "competitors": [],
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute competitor analysis.

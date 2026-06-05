@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.config.constants import SCORING_WEIGHTS
@@ -74,6 +75,19 @@ class ScoringEngine(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "total_score": 0.0,
+            "investment_signal": "WEAK",
+            "breakdown": {
+                "market_opportunity": 0.0,
+                "competition_intensity": 0.0,
+                "execution_feasibility": 0.0,
+                "risk_exposure": 0.0,
+            },
+            "justification": "Analysis failed.",
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute investment scoring.

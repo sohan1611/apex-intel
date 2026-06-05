@@ -142,17 +142,17 @@ class MainOrchestrator:
                 )
 
                 # Helper to handle exceptions
-                def safe_result(res, agent_name):
+                def safe_result(res, agent):
                     if isinstance(res, Exception):
-                        logger.error("%s failed: %s", agent_name, res)
-                        return {"status": "error", "error": str(res)}
+                        logger.error("%s failed: %s", agent.agent_name, res)
+                        return agent._build_error_output(str(res))
                     return res
 
-                market_analysis = safe_result(market_analysis, "MarketAgent")
-                competitor_analysis = safe_result(competitor_analysis, "CompetitorAgent")
-                skeptic_analysis = safe_result(skeptic_analysis, "SkepticAgent")
-                assumptions = safe_result(assumptions, "AssumptionAgent")
-                execution_feasibility = safe_result(execution_feasibility, "ExecutionAgent")
+                market_analysis = safe_result(market_analysis, market_agent)
+                competitor_analysis = safe_result(competitor_analysis, competitor_agent)
+                skeptic_analysis = safe_result(skeptic_analysis, skeptic_agent)
+                assumptions = safe_result(assumptions, assumption_agent)
+                execution_feasibility = safe_result(execution_feasibility, execution_agent)
 
                 await repo.update_report_field(analysis_id, "market_analysis", market_analysis)
                 await repo.update_report_field(analysis_id, "competitor_analysis", competitor_analysis)

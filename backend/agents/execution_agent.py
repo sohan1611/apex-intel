@@ -19,6 +19,7 @@ considering operational complexity, capital needs, and time to market.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.core.prompts import (
@@ -46,6 +47,15 @@ class ExecutionAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "operational_difficulty": "UNKNOWN",
+            "capital_requirements": "UNKNOWN",
+            "time_to_market_estimate": "UNKNOWN",
+            "rationale": "Analysis failed.",
+            "source": "inferred-insight",
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute feasibility analysis.

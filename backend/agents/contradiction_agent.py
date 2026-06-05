@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 from backend.agents.base_agent import BaseAgent
 from backend.core.prompts import (
@@ -49,6 +50,11 @@ class ContradictionAgent(BaseAgent):
 
     def __init__(self) -> None:
         super().__init__()
+
+    def fallback_default(self) -> dict[str, Any]:
+        return {
+            "identified_contradictions": [],
+        }
 
     async def run(self, context: dict) -> dict:
         """Execute contradiction detection.

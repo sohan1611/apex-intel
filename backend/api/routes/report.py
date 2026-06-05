@@ -23,6 +23,7 @@ import uuid
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ── Internal imports ─────────────────────────────────────────────────
@@ -312,96 +313,132 @@ def _build_full_report(report: Any) -> FullReportSchema:
     # ── Parse company_brief ──────────────────────────────────────────
     company_brief: CompanyBrief | None = None
     if report.company_brief and isinstance(report.company_brief, dict):
-        company_brief = CompanyBrief(**report.company_brief)
+        try:
+            company_brief = CompanyBrief(**report.company_brief)
+        except ValidationError as e:
+            logger.warning("Failed to parse company_brief for report %s: %s", report.id, e)
 
     # ── Parse market_analysis ────────────────────────────────────────
     market_analysis: MarketAnalysis | None = None
     if report.market_analysis and isinstance(report.market_analysis, dict):
-        market_analysis = MarketAnalysis(**report.market_analysis)
+        try:
+            market_analysis = MarketAnalysis(**report.market_analysis)
+        except ValidationError as e:
+            logger.warning("Failed to parse market_analysis for report %s: %s", report.id, e)
 
     # ── Build competitors from the ORM relationship ──────────────────
-    # The Report model has a `competitors` relationship that eager-loads
-    # Competitor ORM objects. We convert them to Pydantic schemas.
     competitors: list[CompetitorEntry] = []
     if hasattr(report, "competitors") and report.competitors:
         for c in report.competitors:
-            competitors.append(
-                CompetitorEntry(
-                    name=c.name,
-                    pricing=c.pricing,
-                    positioning=c.positioning,
-                    strengths=c.strengths or [],
-                    weaknesses=c.weaknesses or [],
-                    source=c.source,
+            try:
+                competitors.append(
+                    CompetitorEntry(
+                        name=c.name,
+                        pricing=c.pricing,
+                        positioning=c.positioning,
+                        strengths=c.strengths or [],
+                        weaknesses=c.weaknesses or [],
+                        source=c.source,
+                    )
                 )
-            )
-    # Fallback: also check the competitor_analysis JSON column
+            except ValidationError:
+                pass
     elif report.competitor_analysis and isinstance(report.competitor_analysis, list):
-        competitors = [CompetitorEntry(**c) for c in report.competitor_analysis]
+        for c in report.competitor_analysis:
+            try:
+                competitors.append(CompetitorEntry(**c))
+            except ValidationError:
+                pass
 
     # ── Build risk entries from the ORM relationship ─────────────────
     skeptic_analysis: list[RiskEntry] = []
     if hasattr(report, "risk_entries") and report.risk_entries:
         for r in report.risk_entries:
-            skeptic_analysis.append(
-                RiskEntry(
-                    risk=r.risk,
-                    severity=r.severity,
-                    rationale=r.rationale,
-                    source=r.source,
+            try:
+                skeptic_analysis.append(
+                    RiskEntry(
+                        risk=r.risk,
+                        severity=r.severity,
+                        rationale=r.rationale,
+                        source=r.source,
+                    )
                 )
-            )
-    # Fallback: check the skeptic_analysis JSON column
+            except ValidationError:
+                pass
     elif report.skeptic_analysis and isinstance(report.skeptic_analysis, dict):
         risks = report.skeptic_analysis.get("top_risks", [])
-        skeptic_analysis = [RiskEntry(**r) for r in risks]
+        for r in risks:
+            try:
+                skeptic_analysis.append(RiskEntry(**r))
+            except ValidationError:
+                pass
 
     # ── Build assumptions from the ORM relationship ──────────────────
     assumptions: list[AssumptionEntry] = []
     if hasattr(report, "assumption_entries") and report.assumption_entries:
         for a in report.assumption_entries:
-            assumptions.append(
-                AssumptionEntry(
-                    assumption=a.assumption,
-                    validation_difficulty=a.validation_difficulty,
-                    impact_if_false=a.impact_if_false,
-                    source=a.source,
+            try:
+                assumptions.append(
+                    AssumptionEntry(
+                        assumption=a.assumption,
+                        validation_difficulty=a.validation_difficulty,
+                        impact_if_false=a.impact_if_false,
+                        source=a.source,
+                    )
                 )
-            )
-    # Fallback: check the assumptions JSON column
+            except ValidationError:
+                pass
     elif report.assumptions and isinstance(report.assumptions, dict):
         raw_assumptions = report.assumptions.get("core_assumptions", [])
-        assumptions = [AssumptionEntry(**a) for a in raw_assumptions]
+        for a in raw_assumptions:
+            try:
+                assumptions.append(AssumptionEntry(**a))
+            except ValidationError:
+                pass
 
     # ── Parse execution feasibility ──────────────────────────────────
     exec_feasibility: ExecutionFeasibility | None = None
     if report.execution_feasibility and isinstance(report.execution_feasibility, dict):
-        exec_feasibility = ExecutionFeasibility(**report.execution_feasibility)
+        try:
+            exec_feasibility = ExecutionFeasibility(**report.execution_feasibility)
+        except ValidationError as e:
+            logger.warning("Failed to parse execution_feasibility for report %s: %s", report.id, e)
 
     # ── Parse contradictions ─────────────────────────────────────────
     contradictions: list[Contradiction] = []
     if report.contradictions and isinstance(report.contradictions, dict):
         raw_contradictions = report.contradictions.get("identified_contradictions", [])
-        contradictions = [Contradiction(**c) for c in raw_contradictions]
+        for c in raw_contradictions:
+            try:
+                contradictions.append(Contradiction(**c))
+            except ValidationError:
+                pass
 
     # ── Parse red flags ──────────────────────────────────────────────
     red_flags: list[RedFlag] = []
     if report.red_flags and isinstance(report.red_flags, list):
-        red_flags = [RedFlag(**rf) for rf in report.red_flags]
+        for rf in report.red_flags:
+            try:
+                red_flags.append(RedFlag(**rf))
+            except ValidationError:
+                pass
 
     # ── Build score breakdown from the ORM relationship ──────────────
     score: ScoreBreakdownSchema | None = None
     if hasattr(report, "score_breakdown") and report.score_breakdown:
         sb = report.score_breakdown
-        score = ScoreBreakdownSchema(
-            total_score=sb.total_score,
-            market_opportunity=sb.market_opportunity,
-            competition_intensity=sb.competition_intensity,
-            execution_feasibility=sb.execution_feasibility,
-            risk_exposure=sb.risk_exposure,
-            investment_signal=sb.investment_signal,
-            justification=sb.justification,
-        )
+        try:
+            score = ScoreBreakdownSchema(
+                total_score=sb.total_score,
+                market_opportunity=sb.market_opportunity,
+                competition_intensity=sb.competition_intensity,
+                execution_feasibility=sb.execution_feasibility,
+                risk_exposure=sb.risk_exposure,
+                investment_signal=sb.investment_signal,
+                justification=sb.justification,
+            )
+        except ValidationError as e:
+            logger.warning("Failed to parse score_breakdown for report %s: %s", report.id, e)
 
     # ── Assemble the full report ─────────────────────────────────────
     return FullReportSchema(

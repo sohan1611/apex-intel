@@ -31,3 +31,4 @@ redis>=5.0.0                       # Redis client (caching, pub/sub)
 # ── Testing ──────────────────────────────────────────────────────────────
 pytest>=8.0.0
 pytest-asyncio>=0.24.0             # Async test support
+tenacity>=8.2.0

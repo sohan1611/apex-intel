@@ -39,6 +39,13 @@ import logging
 from typing import Any
 
 import httpx
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
 
 from backend.config.settings import settings
 
@@ -68,6 +75,12 @@ class SearchService:
     # ══════════════════════════════════════════════════════════════════════
     # Core method: search
     # ══════════════════════════════════════════════════════════════════════
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+    )
     async def search(
         self,
         query: str,
@@ -123,11 +136,11 @@ class SearchService:
             # ── Parse the response ───────────────────────────────────────
             return self._parse_results(data, num_results)
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as exc:
             logger.error(
                 "[SearchService] Request timed out for query: %r", query
             )
-            return []
+            raise exc
 
         except httpx.HTTPStatusError as exc:
             logger.error(
@@ -136,7 +149,7 @@ class SearchService:
                 query,
                 exc.response.text[:200],
             )
-            return []
+            raise exc
 
         except Exception as exc:
             logger.error(
@@ -144,7 +157,7 @@ class SearchService:
                 query,
                 exc,
             )
-            return []
+            raise exc
 
     # ══════════════════════════════════════════════════════════════════════
     # Response parser

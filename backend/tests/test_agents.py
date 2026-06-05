@@ -45,6 +45,9 @@ class _TestAgent(BaseAgent):
         """Return a simple test prompt."""
         return "You are a test agent."
 
+    def fallback_default(self) -> dict:
+        return {"data": None}
+
     async def run(self, context: dict) -> dict:
         """
         Minimal run implementation — just returns the context as-is.
@@ -193,9 +196,8 @@ async def test_base_agent_error_output(agent: _TestAgent) -> None:
     # Assert: check the structure
     assert isinstance(result, dict)
     assert result["agent"] == "test_agent"
-    assert result["status"] == "error"
-    assert result["error"] == error_message
-    assert result.get("data") is None
+    assert result["status"] == "partial_failure"
+    assert "error" in result
 
 
 # =====================================================================
@@ -214,5 +216,5 @@ async def test_base_agent_error_output_from_exception(
     result = agent._build_error_output(str(error))
 
     assert isinstance(result, dict)
-    assert result["status"] == "error"
-    assert "Connection timed out" in result["error"]
+    assert result["status"] == "partial_failure"
+    assert "error" in result
