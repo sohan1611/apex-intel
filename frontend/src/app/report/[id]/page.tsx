@@ -15,7 +15,9 @@ import ExecutionSection from '@/features/report/ExecutionSection';
 import ContradictionsSection from '@/features/report/ContradictionsSection';
 import ScoreBreakdown from '@/features/report/ScoreBreakdown';
 import { SignalBadge } from '@/components/ui/SignalBadge';
-import { MOCK_REPORT } from '@/lib/mock-data';
+import { useReport } from '@/hooks/use-api';
+import { useParams } from 'next/navigation';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 // -- Section jump targets --
 
@@ -49,7 +51,33 @@ function formatLargeNumber(n: number | undefined | null): string {
  * on desktop and a sticky horizontal tab bar on mobile.
  */
 export default function ReportPage() {
-  const report = MOCK_REPORT;
+  const params = useParams();
+  const id = params?.id as string;
+  const { data: report, isLoading, isError, error } = useReport(id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-primary" />
+        </main>
+      </div>
+    );
+  }
+
+  if (isError || !report) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-signal-weak mb-4" />
+          <h1 className="text-2xl font-bold text-text-primary mb-2">Failed to load report</h1>
+          <p className="text-text-secondary">{error?.message || 'Report not found or unavailable.'}</p>
+        </main>
+      </div>
+    );
+  }
 
   // Derived stats for executive summary and quick stats
   const totalScore = report.score?.total_score ?? report.investmentScore ?? 0;

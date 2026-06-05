@@ -246,6 +246,12 @@ class FullReportSchema(BaseModel):
     status: str = Field(
         ..., description="queued | in_progress | completed | failed."
     )
+    input_type: str | None = Field(
+        default=None, description="url | text"
+    )
+    input_content: str | None = Field(
+        default=None, description="The URL or text that was analyzed."
+    )
 
     # ── Agent Outputs ────────────────────────────────────────────────────
     company_brief: CompanyBrief | None = None

@@ -47,22 +47,22 @@ export default function CompetitorMatrix({ competitors }: CompetitorMatrixProps)
           <tbody>
             {competitors.map((competitor, index) => (
               <tr
-                key={competitor.company_name ?? index}
+                key={competitor.company_name ?? competitor.name ?? index}
                 className="border-b border-border-subtle last:border-b-0 hover:bg-bg-secondary/50 transition-colors"
               >
                 {/* Company */}
                 <td className="px-4 py-4 text-sm font-medium text-text-primary whitespace-nowrap">
-                  {competitor.company_name}
+                  {competitor.company_name ?? competitor.name}
                 </td>
 
                 {/* Pricing */}
                 <td className="px-4 py-4 text-sm text-text-secondary">
-                  {competitor.pricing}
+                  {competitor.pricing ?? <span className="text-text-muted italic">Data unavailable</span>}
                 </td>
 
                 {/* Positioning */}
                 <td className="px-4 py-4 text-sm text-text-secondary max-w-[200px]">
-                  {competitor.positioning}
+                  {competitor.positioning ?? <span className="text-text-muted italic">Data unavailable</span>}
                 </td>
 
                 {/* Strengths */}

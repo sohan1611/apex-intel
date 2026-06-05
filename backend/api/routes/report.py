@@ -187,6 +187,7 @@ async def list_reports(
                     input_content=_truncate(r.input_content, max_len=150),
                     status=r.status,
                     investment_signal=r.investment_signal,
+                    total_score=r.score_breakdown.total_score if r.score_breakdown else None,
                     created_at=r.created_at,
                 )
             )
@@ -406,6 +407,8 @@ def _build_full_report(report: Any) -> FullReportSchema:
     return FullReportSchema(
         id=report.id,
         status=report.status,
+        input_type=report.input_type,
+        input_content=report.input_content,
         company_brief=company_brief,
         market_analysis=market_analysis,
         competitors=competitors,

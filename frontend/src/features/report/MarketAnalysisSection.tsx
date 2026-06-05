@@ -28,15 +28,15 @@ export default function MarketAnalysisSection({ market }: MarketAnalysisSectionP
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard
           label="Total Addressable Market"
-          value={formatCurrency(market.tam_estimate)}
+          value={market.tam_estimate != null ? formatCurrency(market.tam_estimate) : 'Data unavailable'}
         />
         <MetricCard
           label="Serviceable Addressable Market"
-          value={formatCurrency(market.sam_estimate)}
+          value={market.sam_estimate != null ? formatCurrency(market.sam_estimate) : 'Data unavailable'}
         />
         <MetricCard
           label="Serviceable Obtainable Market"
-          value={formatCurrency(market.som_estimate)}
+          value={market.som_estimate != null ? formatCurrency(market.som_estimate) : 'Data unavailable'}
         />
       </div>
 

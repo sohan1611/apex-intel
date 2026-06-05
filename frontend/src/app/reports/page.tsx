@@ -18,7 +18,7 @@ import { Footer } from '@/components/layout/Footer';
 import { KPIBar } from '@/components/ui/KPIBar';
 import { SignalBadge } from '@/components/ui/SignalBadge';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { MOCK_REPORTS_LIST } from '@/lib/mock-data';
+import { useReports } from '@/hooks/use-api';
 import type { ReportListItem } from '@/types/report';
 import ReportSelectionBar from '@/features/reports/ReportSelectionBar';
 
@@ -55,6 +55,11 @@ function truncate(str: string, max: number) {
 
 export default function ReportsPage() {
   const router = useRouter();
+  const { data } = useReports();
+  const rawReports = data || [];
+
+  // Wrap in useMemo to fix exhaustive-deps warning
+  const reportsData = useMemo(() => rawReports, [rawReports]);
 
   /* -- filters & sort -- */
   const [search, setSearch] = useState('');
@@ -71,7 +76,7 @@ export default function ReportsPage() {
 
   /* ---- filtering ---- */
   const filtered = useMemo(() => {
-    let list: ReportListItem[] = [...MOCK_REPORTS_LIST];
+    let list: ReportListItem[] = [...reportsData];
 
     // text search
     if (search.trim()) {
@@ -94,7 +99,7 @@ export default function ReportsPage() {
     }
 
     return list;
-  }, [search, signalFilter, statusFilter]);
+  }, [reportsData, search, signalFilter, statusFilter]);
 
   /* ---- sorting ---- */
   const sorted = useMemo(() => {
@@ -177,7 +182,7 @@ export default function ReportsPage() {
         {/* Page Header */}
         <PageHeader
           title="Reports Library"
-          subtitle={`${MOCK_REPORTS_LIST.length} reports`}
+          subtitle={`${reportsData.length} reports`}
           action={
             <Link
               href="/analyze"
@@ -189,9 +194,8 @@ export default function ReportsPage() {
           }
         />
 
-        {/* KPI Bar */}
         <div className="mt-6">
-          <KPIBar reports={MOCK_REPORTS_LIST} />
+          <KPIBar reports={reportsData} />
         </div>
 
         {/* Filters Bar */}

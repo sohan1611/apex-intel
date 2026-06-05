@@ -141,9 +141,9 @@ export interface CompanyBrief {
 
 /** Market analysis from market research agent */
 export interface MarketAnalysis {
-  tam_estimate: number;
-  sam_estimate: number;
-  som_estimate: number;
+  tam_estimate: number | null;
+  sam_estimate: number | null;
+  som_estimate: number | null;
   market_trends: { trend: string; source: string }[];
   confidence_score: number;
   uncertainty_factor: string;
@@ -153,8 +153,8 @@ export interface MarketAnalysis {
 export interface CompetitorEntry {
   name: string;
   company_name?: string;
-  pricing: string;
-  positioning: string;
+  pricing: string | null;
+  positioning: string | null;
   strengths: string[];
   weaknesses: string[];
   source: string;
@@ -176,17 +176,17 @@ export interface FullReport {
     revenue_model: string;
   };
   market_analysis?: {
-    tam_estimate: number;
-    sam_estimate: number;
-    som_estimate: number;
+    tam_estimate: number | null;
+    sam_estimate: number | null;
+    som_estimate: number | null;
     market_trends: { trend: string; source: string }[];
     confidence_score: number;
     uncertainty_factor: string;
   };
   competitors?: {
     name: string;
-    pricing: string;
-    positioning: string;
+    pricing: string | null;
+    positioning: string | null;
     strengths: string[];
     weaknesses: string[];
     source: string;

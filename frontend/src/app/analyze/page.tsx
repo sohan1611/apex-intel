@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { MOCK_REPORTS_LIST } from '@/lib/mock-data';
+import { useAnalyze, useReports } from '@/hooks/use-api';
 
 // -- Helpers --
 
@@ -91,14 +91,28 @@ export default function AnalyzePage() {
   const [urlValue, setUrlValue] = useState('');
   const [urlTouched, setUrlTouched] = useState(false);
 
+  const analyzeMutation = useAnalyze();
+  const { data: reportsData } = useReports();
+
   const currentValue = mode === 'text' ? textValue : urlValue;
   const isUrlInvalid = mode === 'url' && urlTouched && urlValue.length > 0 && !isValidUrl(urlValue);
-  const isDisabled = currentValue.trim().length === 0 || (mode === 'url' && !isValidUrl(urlValue));
+  const isDisabled = currentValue.trim().length === 0 || (mode === 'url' && !isValidUrl(urlValue)) || analyzeMutation.isPending;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (isDisabled) return;
-    router.push('/analysis/mock-analysis-id');
+    
+    analyzeMutation.mutate(
+      {
+        input_type: mode,
+        input_content: currentValue,
+      },
+      {
+        onSuccess: (data) => {
+          router.push(`/analysis/${data.analysis_id}`);
+        },
+      }
+    );
   };
 
   const handleExampleClick = (example: (typeof EXAMPLES)[number]) => {
@@ -112,7 +126,7 @@ export default function AnalyzePage() {
     }
   };
 
-  const recentReports = MOCK_REPORTS_LIST.slice(0, 3);
+  const recentReports = reportsData?.slice(0, 3) || [];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -211,11 +225,16 @@ export default function AnalyzePage() {
                   : 'bg-accent-primary hover:bg-accent-hover text-white hover:shadow-lg hover:shadow-accent-primary/20'
               )}
             >
-              Run Analysis
+              {analyzeMutation.isPending ? 'Starting...' : 'Run Analysis'}
               <ArrowRight className="h-4 w-4" />
             </button>
 
             <p className="text-xs text-text-tertiary mt-2 text-center">
+              {analyzeMutation.isError && (
+                <span className="text-signal-weak block mb-1">
+                  Error: {analyzeMutation.error.message}
+                </span>
+              )}
               Estimated analysis time: ~2-3 minutes
             </p>
           </form>

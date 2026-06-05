@@ -83,6 +83,10 @@ class ReportListItem(BaseModel):
         default=None,
         description="STRONG / MODERATE / WEAK, or null if not yet scored.",
     )
+    total_score: float | None = Field(
+        default=None,
+        description="Total score (0-100) if available.",
+    )
     created_at: datetime
 
 

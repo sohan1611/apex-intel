@@ -19,35 +19,8 @@ import { Footer } from '@/components/layout/Footer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { SignalBadge } from '@/components/ui/SignalBadge';
-import { MOCK_REPORTS_LIST } from '@/lib/mock-data';
+import { useReports } from '@/hooks/use-api';
 import { formatDate } from '@/lib/utils';
-
-// -- Derived metrics ----------------------------------------------------------
-
-const completedReports = MOCK_REPORTS_LIST.filter(
-  (r) => r.status === 'completed'
-);
-
-const strongSignalCount = MOCK_REPORTS_LIST.filter(
-  (r) => r.investmentSignal === 'STRONG'
-).length;
-
-const avgScore = Math.round(
-  completedReports.reduce((sum, r) => sum + (r.investmentScore ?? 0), 0) /
-    (completedReports.length || 1)
-);
-
-const recentReports = [...MOCK_REPORTS_LIST]
-  .sort(
-    (a, b) =>
-      new Date(b.createdAt ?? '').getTime() -
-      new Date(a.createdAt ?? '').getTime()
-  )
-  .slice(0, 5);
-
-const topOpportunities = [...completedReports]
-  .sort((a, b) => (b.investmentScore ?? 0) - (a.investmentScore ?? 0))
-  .slice(0, 3);
 
 // -- Quick action items -------------------------------------------------------
 
@@ -75,6 +48,34 @@ const QUICK_ACTIONS = [
 // -- Page component -----------------------------------------------------------
 
 export default function DashboardPage() {
+  const { data } = useReports();
+  const reportsData = data || [];
+
+  const completedReports = reportsData.filter(
+    (r) => r.status === 'completed'
+  );
+
+  const strongSignalCount = reportsData.filter(
+    (r) => r.investmentSignal === 'STRONG'
+  ).length;
+
+  const avgScore = Math.round(
+    completedReports.reduce((sum, r) => sum + (r.investmentScore ?? 0), 0) /
+      (completedReports.length || 1)
+  );
+
+  const recentReports = [...reportsData]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt ?? '').getTime() -
+        new Date(a.createdAt ?? '').getTime()
+    )
+    .slice(0, 5);
+
+  const topOpportunities = [...completedReports]
+    .sort((a, b) => (b.investmentScore ?? 0) - (a.investmentScore ?? 0))
+    .slice(0, 3);
+
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary">
       <Navbar />
@@ -102,7 +103,7 @@ export default function DashboardPage() {
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
           <MetricCard
             label="Total Analyses"
-            value={MOCK_REPORTS_LIST.length}
+            value={reportsData.length}
             icon={<BarChart3 className="h-4 w-4" />}
           />
           <MetricCard
@@ -150,11 +151,11 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent-primary/10 border border-accent-primary/20 text-xs font-semibold text-accent-primary">
-                      {(report.companyName ?? '?')[0]}
+                      {((report.companyName || report.title) ?? '?')[0]}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-text-primary truncate">
-                        {report.companyName}
+                        {report.companyName || report.title || report.id}
                       </p>
                       <p className="text-xs text-text-tertiary">
                         {formatDate(report.createdAt)}
@@ -231,7 +232,7 @@ export default function DashboardPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-text-primary truncate">
-                        {report.companyName}
+                        {report.companyName || report.title || report.id}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
