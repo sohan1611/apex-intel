@@ -45,10 +45,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     everything **after** ``yield`` runs on shutdown.
     """
     # ── Startup ──────────────────────────────────────────────────────────
-    # Create all database tables that don't exist yet.
-    # In production you'd rely on Alembic migrations instead, but this is
-    # a handy safety net for development and first-run scenarios.
-    await init_db()
+    # Create all database tables that don't exist yet (development only)
+    if settings.DEBUG:
+        await init_db()
 
     yield  # ← The application is running and serving requests here.
 
