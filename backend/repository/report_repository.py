@@ -23,7 +23,13 @@ from typing import Any, Optional, Sequence
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.models import Report
+from backend.db.models import (
+    Assumption,
+    Competitor,
+    Report,
+    RiskAnalysis,
+    ScoreBreakdown,
+)
 
 # ── Logger ───────────────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
@@ -264,3 +270,63 @@ class ReportRepository:
 
         logger.info("Deleted report %s", report_id)
         return True
+
+    # ─────────────────────────────────────────────────────────────────
+    #  CREATE — Relational Child Entities
+    # ─────────────────────────────────────────────────────────────────
+    async def add_competitors(self, report_id: str, competitors_data: list[dict[str, Any]]) -> None:
+        uid = uuid.UUID(report_id)
+        for comp in competitors_data:
+            c = Competitor(
+                report_id=uid,
+                name=comp.get("name", "Unknown"),
+                pricing=comp.get("pricing"),
+                positioning=comp.get("positioning"),
+                strengths=comp.get("strengths", []),
+                weaknesses=comp.get("weaknesses", []),
+                source=comp.get("source", "agent"),
+            )
+            self._session.add(c)
+        await self._session.commit()
+
+    async def add_assumptions(self, report_id: str, assumptions_data: list[dict[str, Any]]) -> None:
+        uid = uuid.UUID(report_id)
+        for asm in assumptions_data:
+            a = Assumption(
+                report_id=uid,
+                assumption=asm.get("assumption", ""),
+                validation_difficulty=asm.get("validation_difficulty", "moderate"),
+                impact_if_false=asm.get("impact_if_false", "moderate"),
+                source=asm.get("source", "agent"),
+            )
+            self._session.add(a)
+        await self._session.commit()
+
+    async def add_risk_analyses(self, report_id: str, risks_data: list[dict[str, Any]]) -> None:
+        uid = uuid.UUID(report_id)
+        for rsk in risks_data:
+            r = RiskAnalysis(
+                report_id=uid,
+                risk=rsk.get("risk", ""),
+                severity=rsk.get("severity", "medium"),
+                rationale=rsk.get("rationale", ""),
+                source=rsk.get("source", "agent"),
+            )
+            self._session.add(r)
+        await self._session.commit()
+
+    async def set_score_breakdown(self, report_id: str, score_data: dict[str, Any]) -> None:
+        uid = uuid.UUID(report_id)
+        sb = ScoreBreakdown(
+            report_id=uid,
+            total_score=score_data.get("total_score", 0.0),
+            market_opportunity=score_data.get("market_opportunity", 0.0),
+            competition_intensity=score_data.get("competition_intensity", 0.0),
+            execution_feasibility=score_data.get("execution_feasibility", 0.0),
+            risk_exposure=score_data.get("risk_exposure", 0.0),
+            investment_signal=score_data.get("investment_signal", "WEAK"),
+            justification=score_data.get("justification", ""),
+        )
+        self._session.add(sb)
+        await self._session.commit()
+

@@ -248,7 +248,11 @@ def _estimate_progress(status: str) -> int:
     """
     status_progress_map = {
         "queued": 0,
-        "in_progress": 50,
+        "structuring": 10,
+        "analysis": 50,
+        "contradictions": 70,
+        "synthesis": 85,
+        "scoring": 95,
         "completed": 100,
         "failed": 0,
     }
@@ -273,24 +277,7 @@ def _get_current_phase(report: Any) -> str:
     str
         Human-readable phase label.
     """
-    if report.status == "completed":
-        return "completed"
-    if report.status == "failed":
-        return "failed"
-    if report.status == "queued":
-        return "waiting"
-
-    # For "in_progress", check which fields are populated to infer phase
-    if report.synthesized_memo is not None:
-        return "scoring_and_synthesis"
-    if report.contradictions is not None:
-        return "cross_validation"
-    if report.market_analysis is not None or report.skeptic_analysis is not None:
-        return "agent_analysis"
-    if report.company_brief is not None:
-        return "data_ingestion"
-
-    return "data_ingestion"
+    return report.status
 
 
 async def _run_analysis_pipeline(
