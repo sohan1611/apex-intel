@@ -36,14 +36,16 @@ class ExecutionAgent(BaseAgent):
     estimated time to market for the proposed business.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "ExecutionAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return EXECUTION_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="ExecutionAgent",
-            description=(
-                "Assesses execution feasibility including operational "
-                "difficulty, capital needs, and time to market."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute feasibility analysis.
@@ -70,12 +72,9 @@ class ExecutionAgent(BaseAgent):
 
             # ── 3. Call LLM ───────────────────────────────────────────────
             logger.info(
-                "[%s] Running execution feasibility analysis…", self.name
+                "[%s] Running execution feasibility analysis…", self.agent_name
             )
-            raw_response = await self._call_llm(
-                system_prompt=EXECUTION_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -94,7 +93,7 @@ class ExecutionAgent(BaseAgent):
             }
 
             logger.info(
-                "[%s] Execution feasibility analysis complete.", self.name
+                "[%s] Execution feasibility analysis complete.", self.agent_name
             )
             return result
 

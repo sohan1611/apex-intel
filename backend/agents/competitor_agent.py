@@ -35,14 +35,16 @@ class CompetitorAgent(BaseAgent):
     including pricing, positioning, strengths, and weaknesses.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "CompetitorAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return COMPETITOR_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="CompetitorAgent",
-            description=(
-                "Identifies competitors, their pricing, positioning, "
-                "strengths, and weaknesses."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute competitor analysis.
@@ -75,11 +77,8 @@ class CompetitorAgent(BaseAgent):
             )
 
             # ── 3. Call LLM ───────────────────────────────────────────────
-            logger.info("[%s] Running competitor analysis…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=COMPETITOR_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running competitor analysis…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -92,7 +91,7 @@ class CompetitorAgent(BaseAgent):
 
             logger.info(
                 "[%s] Competitor analysis complete. Found %d competitors.",
-                self.name,
+                self.agent_name,
                 len(competitors_list),
             )
             return result

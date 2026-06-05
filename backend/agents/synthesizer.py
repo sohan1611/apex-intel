@@ -50,14 +50,16 @@ class SynthesizerAgent(BaseAgent):
     committee.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "SynthesizerAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return SYNTHESIZER_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="SynthesizerAgent",
-            description=(
-                "Synthesises all analysis outputs into a comprehensive "
-                "investment memo."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute synthesis of all analysis outputs.
@@ -108,11 +110,8 @@ class SynthesizerAgent(BaseAgent):
             )
 
             # ── 3. Call LLM ───────────────────────────────────────────────
-            logger.info("[%s] Running final synthesis…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=SYNTHESIZER_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running final synthesis…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -143,7 +142,7 @@ class SynthesizerAgent(BaseAgent):
 
             logger.info(
                 "[%s] Synthesis complete. Confidence: %.2f",
-                self.name,
+                self.agent_name,
                 result["overall_confidence_score"],
             )
             return result

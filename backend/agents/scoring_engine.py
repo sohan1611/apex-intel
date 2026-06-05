@@ -64,14 +64,16 @@ class ScoringEngine(BaseAgent):
     human-readable investment signal (STRONG / MODERATE / WEAK).
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "ScoringEngine"
+
+    @property
+    def system_prompt(self) -> str:
+        return SCORING_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="ScoringEngine",
-            description=(
-                "Produces quantitative investment scores with "
-                "dimensional breakdown and justification."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute investment scoring.
@@ -98,11 +100,8 @@ class ScoringEngine(BaseAgent):
             )
 
             # ── 3. Call LLM ───────────────────────────────────────────────
-            logger.info("[%s] Running investment scoring…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=SCORING_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running investment scoring…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -120,7 +119,7 @@ class ScoringEngine(BaseAgent):
                     logger.warning(
                         "[%s] Score mismatch: LLM said %.2f, breakdown "
                         "sums to %.2f. Using breakdown sum.",
-                        self.name,
+                        self.agent_name,
                         total_score,
                         calculated_total,
                     )
@@ -130,7 +129,7 @@ class ScoringEngine(BaseAgent):
                 logger.warning(
                     "[%s] Invalid score breakdown from LLM. "
                     "Using LLM total as-is.",
-                    self.name,
+                    self.agent_name,
                 )
                 breakdown = {
                     key: float(breakdown.get(key, 0.0))
@@ -172,7 +171,7 @@ class ScoringEngine(BaseAgent):
 
             logger.info(
                 "[%s] Scoring complete. Total: %.2f, Signal: %s",
-                self.name,
+                self.agent_name,
                 result["total_score"],
                 result["investment_signal"],
             )

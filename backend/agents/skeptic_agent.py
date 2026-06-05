@@ -34,14 +34,16 @@ class SkepticAgent(BaseAgent):
     by severity so investors know where to focus their diligence.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "SkepticAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return SKEPTIC_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="SkepticAgent",
-            description=(
-                "Identifies risks, weaknesses, and potential failure "
-                "modes with severity ratings."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute skeptic risk analysis.
@@ -74,11 +76,8 @@ class SkepticAgent(BaseAgent):
             )
 
             # ── 3. Call LLM ───────────────────────────────────────────────
-            logger.info("[%s] Running skeptic analysis…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=SKEPTIC_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running skeptic analysis…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -91,7 +90,7 @@ class SkepticAgent(BaseAgent):
 
             logger.info(
                 "[%s] Skeptic analysis complete. Identified %d risks.",
-                self.name,
+                self.agent_name,
                 len(risks_list),
             )
             return result

@@ -35,14 +35,16 @@ class AssumptionAgent(BaseAgent):
     is to test and how catastrophic it would be if wrong.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "AssumptionAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return ASSUMPTION_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="AssumptionAgent",
-            description=(
-                "Identifies and validates business assumptions with "
-                "difficulty and impact classification."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute assumption validation.
@@ -68,11 +70,8 @@ class AssumptionAgent(BaseAgent):
             )
 
             # ── 3. Call LLM ───────────────────────────────────────────────
-            logger.info("[%s] Running assumption validation…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=ASSUMPTION_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running assumption validation…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -90,7 +89,7 @@ class AssumptionAgent(BaseAgent):
 
             logger.info(
                 "[%s] Assumption validation complete. Found %d assumptions.",
-                self.name,
+                self.agent_name,
                 len(assumptions_list),
             )
             return result

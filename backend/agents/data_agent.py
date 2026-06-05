@@ -48,14 +48,16 @@ class DataAgent(BaseAgent):
     of the company's core attributes.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "DataAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return DATA_STRUCTURING_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="DataAgent",
-            description=(
-                "Strips marketing fluff and extracts objective company "
-                "facts into a structured format."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute data structuring analysis.
@@ -88,11 +90,8 @@ class DataAgent(BaseAgent):
             )
 
             # ── 3. Call the LLM ───────────────────────────────────────────
-            logger.info("[%s] Running data structuring analysis…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=DATA_STRUCTURING_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running data structuring analysis…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse the JSON response ────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -100,7 +99,7 @@ class DataAgent(BaseAgent):
             # ── 5. Normalise — ensure every expected key exists ───────────
             result = {key: parsed.get(key) for key in _EXPECTED_KEYS}
 
-            logger.info("[%s] Data structuring complete.", self.name)
+            logger.info("[%s] Data structuring complete.", self.agent_name)
             return result
 
         except Exception as exc:

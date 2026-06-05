@@ -39,14 +39,16 @@ class ContradictionAgent(BaseAgent):
     that an investor should be aware of.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "ContradictionAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return CONTRADICTION_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="ContradictionAgent",
-            description=(
-                "Detects contradictions and inconsistencies across "
-                "agent outputs."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute contradiction detection.
@@ -85,12 +87,9 @@ class ContradictionAgent(BaseAgent):
 
             # ── 3. Call LLM ───────────────────────────────────────────────
             logger.info(
-                "[%s] Running contradiction detection…", self.name
+                "[%s] Running contradiction detection…", self.agent_name
             )
-            raw_response = await self._call_llm(
-                system_prompt=CONTRADICTION_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -106,7 +105,7 @@ class ContradictionAgent(BaseAgent):
             logger.info(
                 "[%s] Contradiction detection complete. "
                 "Found %d contradictions.",
-                self.name,
+                self.agent_name,
                 len(contradictions_list),
             )
             return result

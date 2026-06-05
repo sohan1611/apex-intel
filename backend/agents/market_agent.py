@@ -38,14 +38,16 @@ class MarketAgent(BaseAgent):
     market sizes, identify trends, and quantify confidence.
     """
 
+    @property
+    def agent_name(self) -> str:
+        return "MarketAgent"
+
+    @property
+    def system_prompt(self) -> str:
+        return MARKET_RESEARCH_SYSTEM_PROMPT
+
     def __init__(self) -> None:
-        super().__init__(
-            name="MarketAgent",
-            description=(
-                "Estimates market sizes (TAM/SAM/SOM) and identifies "
-                "market trends from search data."
-            ),
-        )
+        super().__init__()
 
     async def run(self, context: dict) -> dict:
         """Execute market research analysis.
@@ -78,11 +80,8 @@ class MarketAgent(BaseAgent):
             )
 
             # ── 3. Call LLM ───────────────────────────────────────────────
-            logger.info("[%s] Running market research analysis…", self.name)
-            raw_response = await self._call_llm(
-                system_prompt=MARKET_RESEARCH_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-            )
+            logger.info("[%s] Running market research analysis…", self.agent_name)
+            raw_response = await self._call_llm(user_prompt)
 
             # ── 4. Parse response ─────────────────────────────────────────
             parsed = self._parse_json_response(raw_response)
@@ -99,7 +98,7 @@ class MarketAgent(BaseAgent):
                 "uncertainty_factor": parsed.get("uncertainty_factor"),
             }
 
-            logger.info("[%s] Market research complete.", self.name)
+            logger.info("[%s] Market research complete.", self.agent_name)
             return result
 
         except Exception as exc:
