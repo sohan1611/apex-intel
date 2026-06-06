@@ -26,6 +26,7 @@ Why pydantic-settings?
 
 from __future__ import annotations
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -42,6 +43,21 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+asyncpg://postgres:postgres@localhost:5432/apex_intel"
     )
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def fix_database_url_scheme(cls, v: str) -> str:
+        """
+        Railway and other PaaS providers expose DATABASE_URL starting with
+        postgresql:// or postgres://. We must rewrite it to postgresql+asyncpg://
+        for our async driver to work.
+        """
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
 
     # ── LLM Configuration ───────────────────────────────────────────────
     LLM_PROVIDER: str = "gemini"  # e.g. "gemini", "openai" (future)
