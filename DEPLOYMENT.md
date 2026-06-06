@@ -61,10 +61,12 @@ Railway and Render are PaaS providers that natively support Docker monorepos.
 2. Provision a **PostgreSQL** plugin. This will automatically expose a `DATABASE_URL` environment variable.
 3. Deploy the **Backend**:
    * Connect your GitHub repo.
-   * Set the root directory to `/backend`.
-   * Railway will automatically detect the `Dockerfile`.
+   * **Root Directory:** `/backend`
+   * **Builder:** `Dockerfile`
+   * **Dockerfile Path:** `Dockerfile`
+   * **Start Command:** *(Leave Blank - the `entrypoint.sh` handles it)*
+   * **Health Check Path:** `/health`
    * Add your environment variables (`GEMINI_API_KEY`, `SERPER_API_KEY`, `CORS_ORIGINS=["https://your-frontend-domain.app"]`, etc.).
-   * The included `entrypoint.sh` in the Dockerfile will automatically run `alembic upgrade head` to apply migrations before starting the server. No custom Start Command is required!
 4. Deploy the **Frontend**:
    * Add another service from the same repo.
    * Set the root directory to `/frontend`.
