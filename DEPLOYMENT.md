@@ -15,7 +15,7 @@ The easiest way to run the entire stack locally in a production-like environment
    cp backend/.env.example backend/.env
    cp frontend/.env.example frontend/.env.local
    ```
-2. Fill in the required variables (especially `OPENAI_API_KEY` and `SERPER_API_KEY` in `backend/.env`).
+2. Fill in the required variables (especially `GEMINI_API_KEY` and `SERPER_API_KEY` in `backend/.env`).
 3. Build and start the containers:
    ```bash
    docker compose up --build -d
@@ -63,8 +63,8 @@ Railway and Render are PaaS providers that natively support Docker monorepos.
    * Connect your GitHub repo.
    * Set the root directory to `/backend`.
    * Railway will automatically detect the `Dockerfile`.
-   * Add your environment variables (`OPENAI_API_KEY`, `SERPER_API_KEY`, `CORS_ORIGINS=["https://your-frontend-domain.app"]`, etc.).
-   * Under Deploy settings, set the Start Command to: `alembic upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+   * Add your environment variables (`GEMINI_API_KEY`, `SERPER_API_KEY`, `CORS_ORIGINS=["https://your-frontend-domain.app"]`, etc.).
+   * The included `entrypoint.sh` in the Dockerfile will automatically run `alembic upgrade head` to apply migrations before starting the server. No custom Start Command is required!
 4. Deploy the **Frontend**:
    * Add another service from the same repo.
    * Set the root directory to `/frontend`.
@@ -86,7 +86,7 @@ Railway and Render are PaaS providers that natively support Docker monorepos.
 
 ### Backend
 * `DATABASE_URL`: PostgreSQL connection string (must use `postgresql+asyncpg://` protocol).
-* `OPENAI_API_KEY`: Required for AI agents.
+* `GEMINI_API_KEY`: Required for AI agents.
 * `SERPER_API_KEY`: Required for SearchService.
 * `CORS_ORIGINS`: JSON array of allowed frontend URLs (e.g., `["https://apex-intel.app"]`).
 * `DEBUG`: Set to `False` in production.
