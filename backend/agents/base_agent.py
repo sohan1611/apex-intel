@@ -22,14 +22,16 @@ from __future__ import annotations
 import json
 import logging
 import re
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 from tenacity import (
     retry,
     stop_after_attempt,
-    wait_exponential,
+    wait_random_exponential,
     retry_if_exception_type,
     before_sleep_log,
 )
@@ -53,10 +55,20 @@ class BaseAgent(ABC):
     key from settings. All agents share the same model configuration.
     """
 
+    # Global semaphore to limit concurrent requests across all agent instances
+    _semaphore: asyncio.Semaphore | None = None
+
     def __init__(self) -> None:
         """Initialise the agent with an OpenAI async client."""
-        self._client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self._model = settings.OPENAI_MODEL
+        if settings.LLM_PROVIDER == "gemini":
+            self._client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            self._model = settings.GEMINI_MODEL
+        else:
+            raise NotImplementedError(f"LLM Provider {settings.LLM_PROVIDER} is not currently supported.")
+
+        if BaseAgent._semaphore is None:
+            # Create a shared semaphore for all instances to respect the global rate limit
+            BaseAgent._semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENT_REQUESTS)
 
     # ─────────────────────────────────────────────────────────────────
     #  Abstract interface — subclasses MUST implement these
@@ -102,8 +114,8 @@ class BaseAgent(ABC):
     #  Shared utilities
     # ─────────────────────────────────────────────────────────────────
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
+        stop=stop_after_attempt(7),
+        wait=wait_random_exponential(multiplier=2, min=3, max=65),
         retry=retry_if_exception_type(Exception),
         before_sleep=before_sleep_log(logger, logging.WARNING),
     )
@@ -126,15 +138,25 @@ class BaseAgent(ABC):
         Exception
             If the API call fails (timeout, auth error, etc.).
         """
-        response = await self._client.chat.completions.create(
-            model=self._model,
-            messages=[
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0.2,  # Low temperature for factual analysis
-        )
-        return response.choices[0].message.content or ""
+        if BaseAgent._semaphore is None:
+             BaseAgent._semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENT_REQUESTS)
+
+        async with BaseAgent._semaphore:
+            logger.debug("[%s] Acquired LLM semaphore. Sending request...", self.agent_name)
+            if settings.LLM_PROVIDER == "gemini":
+                response = await self._client.aio.models.generate_content(
+                    model=self._model,
+                    contents=user_prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=self.system_prompt,
+                        temperature=settings.GEMINI_TEMPERATURE,
+                        max_output_tokens=settings.GEMINI_MAX_TOKENS,
+                        response_mime_type="application/json",
+                    ),
+                )
+                return response.text or ""
+            else:
+                raise NotImplementedError(f"LLM Provider {settings.LLM_PROVIDER} is not currently supported.")
 
     def _parse_json_response(self, raw: str) -> dict[str, Any] | None:
         """

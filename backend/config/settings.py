@@ -43,11 +43,13 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://postgres:postgres@localhost:5432/apex_intel"
     )
 
-    # ── OpenAI / LLM ────────────────────────────────────────────────────
-    OPENAI_API_KEY: str = ""  # REQUIRED — set via env or .env
-    OPENAI_MODEL: str = "gpt-4o"  # The default model for all agent calls
-    OPENAI_TEMPERATURE: float = 0.2  # Low temperature for deterministic output
-    OPENAI_MAX_TOKENS: int = 4096    # Maximum tokens per LLM response
+    # ── LLM Configuration ───────────────────────────────────────────────
+    LLM_PROVIDER: str = "gemini"  # e.g. "gemini", "openai" (future)
+    GEMINI_API_KEY: str = ""      # REQUIRED if provider is gemini
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_TEMPERATURE: float = 0.2
+    GEMINI_MAX_TOKENS: int = 8192
+    LLM_MAX_CONCURRENT_REQUESTS: int = 2  # Limits concurrent API calls (set to 1 for free tier)
 
     # ── Web Search (Serper.dev) ──────────────────────────────────────────
     # Serper provides a simple REST API for Google search results.
