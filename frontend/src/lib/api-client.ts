@@ -54,7 +54,8 @@ export const apiClient = {
     return fetchApi<FullReport>(`/api/v1/report/${id}`);
   },
 
-  getReports: (): Promise<ReportListItem[]> => {
-    return fetchApi<ReportListItem[]>('/api/v1/reports');
+  getReports: async (): Promise<ReportListItem[]> => {
+    const res = await fetchApi<{ reports: ReportListItem[]; total: number }>('/api/v1/reports');
+    return res.reports ?? [];
   },
 };
