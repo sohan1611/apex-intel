@@ -104,9 +104,9 @@ class SearchService:
             Returns an empty list if the API call fails.
         """
         # ── Guard: no API key configured ─────────────────────────────────
-        if not self.api_key:
+        if not self.api_key or self.api_key == "your-serper-api-key-here" or self.api_key == "your_serper_api_key":
             logger.warning(
-                "[SearchService] SERPER_API_KEY is not set — skipping search."
+                "[SearchService] SERPER_API_KEY is not set or is dummy — skipping search."
             )
             return []
 

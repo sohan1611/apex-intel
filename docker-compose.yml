@@ -24,13 +24,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: apex-intel-backend
+    env_file:
+      - ./backend/.env
     environment:
       # Use the db container hostname
       DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword@db:5432/apex_intel
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      SERPER_API_KEY: ${SERPER_API_KEY:-}
       DEBUG: "False"
-      CORS_ORIGINS: '["http://localhost:3000"]'
+      CORS_ORIGINS: '["http://localhost:3000", "http://localhost:3001"]'
     ports:
       - "8000:8000"
     depends_on:
@@ -48,7 +48,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
     restart: unless-stopped
