@@ -207,6 +207,7 @@ async def get_analysis_status(
             status=report.status,
             progress=progress,
             current_phase=current_phase,
+            error_log=report.error_log,
         )
 
     except HTTPException:
