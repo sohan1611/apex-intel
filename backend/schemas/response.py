@@ -61,6 +61,10 @@ class ReportStatusResponse(BaseModel):
         ...,
         description="Name of the phase currently executing.",
     )
+    error_log: dict[str, Any] | None = Field(
+        default=None,
+        description="Structured error information if the pipeline failed.",
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════

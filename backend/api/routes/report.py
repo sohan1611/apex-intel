@@ -106,6 +106,7 @@ async def get_report(
                 "status": report.status,
                 "progress": _estimate_progress(report.status),
                 "current_phase": _get_current_phase(report),
+                "error_log": report.error_log,
             }
 
         # ── Build the full report response ───────────────────────────
