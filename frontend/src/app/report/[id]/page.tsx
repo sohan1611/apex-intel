@@ -126,11 +126,8 @@ export default function ReportPage() {
           <section className="mb-12">
             <div className="rounded-lg bg-bg-secondary border-l-4 border-l-accent-primary p-6">
               <h2 className="text-lg font-semibold text-text-primary mb-3">Executive Summary</h2>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                {report.companyName ?? 'This company'} demonstrates moderate market potential with
-                significant competitive headwinds. The AI nutrition space is growing but crowded, and
-                execution risks around regulatory compliance and data moat defensibility temper the
-                opportunity.
+              <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
+                {report.score?.justification ?? 'No executive summary available.'}
               </p>
               <div className="flex flex-wrap gap-6 mt-4 pt-4 border-t border-border-default">
                 <div className="flex flex-col">
