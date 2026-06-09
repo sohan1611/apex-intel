@@ -2,7 +2,7 @@
 
 export interface AnalyzeRequest {
   input_type: 'url' | 'text';
-  input_content: string;
+  content: string;
 }
 
 export interface AnalyzeResponse {

@@ -105,7 +105,7 @@ export default function AnalyzePage() {
     analyzeMutation.mutate(
       {
         input_type: mode,
-        input_content: currentValue,
+        content: currentValue,
       },
       {
         onSuccess: (data) => {
