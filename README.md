@@ -138,10 +138,16 @@ Navigate to the `backend/` folder and copy the environment template:
 cd backend
 cp .env.example .env
 ```
-Fill in the required environment variables in `backend/.env`:
-```ini
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/apex_intel
-OPENAI_API_KEY=your_openai_api_key
+Fill in the required environment variables- Gemini API Key
+- Serper API Key
+
+```bash
+# Create a .env file in the backend directory
+cp backend/.env.example backend/.env
+
+# Add your keys
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key
 SERPER_API_KEY=your_serper_api_key
 ```
 

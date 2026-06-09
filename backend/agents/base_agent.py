@@ -144,17 +144,21 @@ class BaseAgent(ABC):
         async with BaseAgent._semaphore:
             logger.debug("[%s] Acquired LLM semaphore. Sending request...", self.agent_name)
             if settings.LLM_PROVIDER == "gemini":
-                response = await self._client.aio.models.generate_content(
-                    model=self._model,
-                    contents=user_prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=self.system_prompt,
-                        temperature=settings.GEMINI_TEMPERATURE,
-                        max_output_tokens=settings.GEMINI_MAX_TOKENS,
-                        response_mime_type="application/json",
-                    ),
-                )
-                return response.text or ""
+                try:
+                    response = await self._client.aio.models.generate_content(
+                        model=self._model,
+                        contents=user_prompt,
+                        config=types.GenerateContentConfig(
+                            system_instruction=self.system_prompt,
+                            temperature=settings.GEMINI_TEMPERATURE,
+                            max_output_tokens=settings.GEMINI_MAX_TOKENS,
+                            response_mime_type="application/json",
+                        ),
+                    )
+                    return response.text or ""
+                except Exception as e:
+                    logger.error("[%s] Gemini API Error: %s", self.agent_name, str(e))
+                    raise Exception(f"API Error: {type(e).__name__} - {str(e)}") from e
             else:
                 raise NotImplementedError(f"LLM Provider {settings.LLM_PROVIDER} is not currently supported.")
 

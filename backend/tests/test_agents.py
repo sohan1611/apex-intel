@@ -68,9 +68,9 @@ def agent() -> _TestAgent:
 
     We patch the OpenAI client so no actual API calls are made.
     """
-    with patch("backend.agents.base_agent.AsyncOpenAI") as MockClient:
-        # AsyncOpenAI() returns a MagicMock; the agent stores it
-        mock_client = AsyncMock()
+    with patch("backend.agents.base_agent.genai.Client") as MockClient:
+        # Client() returns a MagicMock; the agent stores it
+        mock_client = MagicMock()
         MockClient.return_value = mock_client
         return _TestAgent()
 

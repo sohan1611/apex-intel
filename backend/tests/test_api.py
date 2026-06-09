@@ -45,10 +45,12 @@ import httpx
 from backend.main import app
 
 
+import pytest_asyncio
+
 # =====================================================================
 #  Shared test client fixture
 # =====================================================================
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client() -> httpx.AsyncClient:
     """
     Create an httpx.AsyncClient bound to our FastAPI app.
