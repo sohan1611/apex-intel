@@ -221,7 +221,7 @@ async def get_analysis_status(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve analysis status.",
+            detail=f"Failed to retrieve analysis status: {exc}",
         ) from exc
 
 
