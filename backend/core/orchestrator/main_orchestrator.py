@@ -108,7 +108,7 @@ class MainOrchestrator:
                 company_name = company_brief.get("core_value_prop", "Startup")
                 search_results_data = await search_service.search(f"{company_name} market competitors")
                 search_results = "\n".join(
-                    [f"- {r['title']}: {r['snippet']} ({r['url']})" for r in search_results_data]
+                    [f"- {r['title']}: {r['snippet']} ({r.get('link', '')})" for r in search_results_data]
                 )
 
                 market_agent = MarketAgent()
