@@ -104,18 +104,9 @@ try:
         prefix="/api/v1",
         tags=["Analysis"],
     )
-except ImportError as e:
-    import traceback
-    analyze_import_error = traceback.format_exc()
-
-@app.get("/debug_import")
-async def debug_import():
-    import subprocess
-    pip_freeze = subprocess.check_output(["pip", "freeze"], text=True)
-    return {
-        "error": globals().get("analyze_import_error", "No error"),
-        "pip_freeze": pip_freeze.split("\n")
-    }
+except ImportError:
+    # Route module not yet created — skip silently during early development.
+    pass
 
 try:
     from backend.api.routes.report import router as report_router  # noqa: E402
