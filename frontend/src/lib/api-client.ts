@@ -1,7 +1,10 @@
 import { AnalyzeRequest, AnalyzeResponse, AnalysisStatus } from './api-types';
 import { FullReport, ReportListItem } from '@/types/report';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://apex-intel-production-ae8f.up.railway.app' 
+    : 'http://127.0.0.1:8000');
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
