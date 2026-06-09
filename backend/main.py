@@ -104,9 +104,13 @@ try:
         prefix="/api/v1",
         tags=["Analysis"],
     )
-except ImportError:
-    # Route module not yet created — skip silently during early development.
-    pass
+except ImportError as e:
+    import traceback
+    analyze_import_error = traceback.format_exc()
+
+@app.get("/debug_import")
+async def debug_import():
+    return {"error": globals().get("analyze_import_error", "No error")}
 
 try:
     from backend.api.routes.report import router as report_router  # noqa: E402
