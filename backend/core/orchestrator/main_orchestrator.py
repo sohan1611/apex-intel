@@ -161,12 +161,20 @@ class MainOrchestrator:
                 await repo.update_report_field(analysis_id, "execution_feasibility", execution_feasibility)
 
                 # Also populate relational tables if possible
-                if "competitors" in competitor_analysis:
+                if isinstance(competitor_analysis, dict) and "competitors" in competitor_analysis:
                     await repo.add_competitors(analysis_id, competitor_analysis["competitors"])
-                if "assumptions" in assumptions:
-                    await repo.add_assumptions(analysis_id, assumptions["assumptions"])
-                if "risks" in skeptic_analysis:
-                    await repo.add_risk_analyses(analysis_id, skeptic_analysis["risks"])
+                elif isinstance(competitor_analysis, list) and competitor_analysis:
+                    await repo.add_competitors(analysis_id, competitor_analysis)
+
+                if isinstance(assumptions, dict) and "core_assumptions" in assumptions:
+                    await repo.add_assumptions(analysis_id, assumptions["core_assumptions"])
+                elif isinstance(assumptions, list) and assumptions:
+                    await repo.add_assumptions(analysis_id, assumptions)
+
+                if isinstance(skeptic_analysis, dict) and "top_risks" in skeptic_analysis:
+                    await repo.add_risk_analyses(analysis_id, skeptic_analysis["top_risks"])
+                elif isinstance(skeptic_analysis, list) and skeptic_analysis:
+                    await repo.add_risk_analyses(analysis_id, skeptic_analysis)
 
                 # ── Phase 3: Cross-Validation ────────────────────────
                 await repo.update_status(analysis_id, "contradictions")
@@ -214,11 +222,16 @@ class MainOrchestrator:
                     await repo.update_report_field(analysis_id, "investment_signal", scoring_result.get("investment_signal", "WEAK"))
                     
                     # Synthesized memo typically contains red_flags
-                    red_flags = synthesized_memo.get("red_flags", [])
+                    red_flags = synthesized_memo.get("red_flags", []) if isinstance(synthesized_memo, dict) else []
                     await repo.update_report_field(analysis_id, "red_flags", {"flags": red_flags})
                     
                     # Insert ScoreBreakdown relational entity
                     await repo.set_score_breakdown(analysis_id, scoring_result)
+                else:
+                    logger.warning(
+                        "[Phase 5] Scoring engine returned error for %s: %s",
+                        analysis_id, scoring_result.get("error"),
+                    )
 
                 # ── Mark as completed ────────────────────────────────
                 await repo.update_status(analysis_id, "completed")

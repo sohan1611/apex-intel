@@ -366,8 +366,14 @@ def _build_full_report(report: Any) -> FullReportSchema:
                 )
             except ValidationError:
                 pass
-    elif report.skeptic_analysis and isinstance(report.skeptic_analysis, dict):
-        risks = report.skeptic_analysis.get("top_risks", [])
+    elif report.skeptic_analysis:
+        # Handle both dict format {"top_risks": [...]} and raw list [...]
+        if isinstance(report.skeptic_analysis, dict):
+            risks = report.skeptic_analysis.get("top_risks", [])
+        elif isinstance(report.skeptic_analysis, list):
+            risks = report.skeptic_analysis
+        else:
+            risks = []
         for r in risks:
             try:
                 skeptic_analysis.append(RiskEntry(**r))
@@ -389,8 +395,14 @@ def _build_full_report(report: Any) -> FullReportSchema:
                 )
             except ValidationError:
                 pass
-    elif report.assumptions and isinstance(report.assumptions, dict):
-        raw_assumptions = report.assumptions.get("core_assumptions", [])
+    elif report.assumptions:
+        # Handle both dict format {"core_assumptions": [...]} and raw list [...]
+        if isinstance(report.assumptions, dict):
+            raw_assumptions = report.assumptions.get("core_assumptions", [])
+        elif isinstance(report.assumptions, list):
+            raw_assumptions = report.assumptions
+        else:
+            raw_assumptions = []
         for a in raw_assumptions:
             try:
                 assumptions.append(AssumptionEntry(**a))
@@ -407,8 +419,14 @@ def _build_full_report(report: Any) -> FullReportSchema:
 
     # ── Parse contradictions ─────────────────────────────────────────
     contradictions: list[Contradiction] = []
-    if report.contradictions and isinstance(report.contradictions, dict):
-        raw_contradictions = report.contradictions.get("identified_contradictions", [])
+    if report.contradictions:
+        # Handle both dict format {"identified_contradictions": [...]} and raw list [...]
+        if isinstance(report.contradictions, dict):
+            raw_contradictions = report.contradictions.get("identified_contradictions", [])
+        elif isinstance(report.contradictions, list):
+            raw_contradictions = report.contradictions
+        else:
+            raw_contradictions = []
         for c in raw_contradictions:
             try:
                 contradictions.append(Contradiction(**c))
@@ -417,8 +435,15 @@ def _build_full_report(report: Any) -> FullReportSchema:
 
     # ── Parse red flags ──────────────────────────────────────────────
     red_flags: list[RedFlag] = []
-    if report.red_flags and isinstance(report.red_flags, list):
-        for rf in report.red_flags:
+    if report.red_flags:
+        # Handle both list format and dict format {"flags": [...]}
+        if isinstance(report.red_flags, dict):
+            raw_flags = report.red_flags.get("flags", [])
+        elif isinstance(report.red_flags, list):
+            raw_flags = report.red_flags
+        else:
+            raw_flags = []
+        for rf in raw_flags:
             try:
                 red_flags.append(RedFlag(**rf))
             except ValidationError:

@@ -317,13 +317,14 @@ class ReportRepository:
 
     async def set_score_breakdown(self, report_id: str, score_data: dict[str, Any]) -> None:
         uid = uuid.UUID(report_id)
+        breakdown = score_data.get("breakdown", {})
         sb = ScoreBreakdown(
             report_id=uid,
             total_score=score_data.get("total_score", 0.0),
-            market_opportunity=score_data.get("market_opportunity", 0.0),
-            competition_intensity=score_data.get("competition_intensity", 0.0),
-            execution_feasibility=score_data.get("execution_feasibility", 0.0),
-            risk_exposure=score_data.get("risk_exposure", 0.0),
+            market_opportunity=breakdown.get("market_opportunity", 0.0),
+            competition_intensity=breakdown.get("competition_intensity", 0.0),
+            execution_feasibility=breakdown.get("execution_feasibility", 0.0),
+            risk_exposure=breakdown.get("risk_exposure", 0.0),
             investment_signal=score_data.get("investment_signal", "WEAK"),
             justification=score_data.get("justification", ""),
         )
