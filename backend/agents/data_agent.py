@@ -115,7 +115,6 @@ class DataAgent(BaseAgent):
         except Exception as exc:
             import tenacity
             if isinstance(exc, tenacity.RetryError):
-                exc = exc.last_attempt.exception()
-            return self._build_error_output(
-                f"Data structuring failed: {type(exc).__name__}: {exc}"
-            )
+                underlying = exc.last_attempt.exception()
+                return self._build_error_output(f"Data structuring failed after retries: {underlying}")
+            return self._build_error_output(f"Data structuring failed: {exc}")

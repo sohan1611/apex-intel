@@ -82,4 +82,8 @@ class ComprehensiveAnalysisAgent(BaseAgent):
             return parsed
 
         except Exception as exc:
+            import tenacity
+            if isinstance(exc, tenacity.RetryError):
+                underlying = exc.last_attempt.exception()
+                return self._build_error_output(f"Comprehensive analysis failed after retries: {underlying}")
             return self._build_error_output(f"Comprehensive analysis failed: {exc}")
