@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "Apex Intel"
     DEBUG: bool = False  # Flip to True locally for verbose logs
 
+    ANALYSIS_MODE: str = "optimized"  # "optimized" (3 calls) or "full" (9 calls)
+
     # ── Database ─────────────────────────────────────────────────────────
     # The connection string uses `asyncpg` as the async driver for PostgreSQL.
     # Format: postgresql+asyncpg://<user>:<password>@<host>:<port>/<dbname>

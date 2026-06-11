@@ -16,6 +16,7 @@ export interface AnalysisStatus {
   status: 'queued' | 'structuring' | 'analysis' | 'contradictions' | 'synthesis' | 'scoring' | 'completed' | 'failed';
   progress: number;
   current_phase: string;
+  error_log?: { error: string; phase?: string } | null;
 }
 
 // We re-use FullReport and ReportListItem from @/types/report

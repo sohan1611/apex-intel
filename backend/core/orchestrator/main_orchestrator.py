@@ -3,15 +3,10 @@ backend/core/orchestrator/main_orchestrator.py
 ───────────────────────────────────────────────
 The central brain of Apex Intel's analysis pipeline.
 
-The MainOrchestrator executes the 5-phase Directed Acyclic Graph (DAG):
-  Phase 1 — Data Ingestion & Structuring
-  Phase 2 — Parallel Agent Analysis
-  Phase 3 — Cross-Validation (Contradiction Detection)
-  Phase 4 — Synthesis (Final Memo Generation)
-  Phase 5 — Scoring & Finalisation
-
-Each phase updates the Report row in the database so the frontend
-can poll for real-time progress.
+The MainOrchestrator executes the 5-phase Directed Acyclic Graph (DAG).
+It supports two modes:
+  - "optimized": 3 LLM calls total (combines parallel agents & synthesis/scoring)
+  - "full": 9 LLM calls total (legacy individual agents)
 """
 
 from __future__ import annotations
@@ -20,6 +15,7 @@ import asyncio
 import logging
 from typing import Any
 
+from backend.config.settings import settings
 from backend.db.connection import async_session_maker
 from backend.repository.report_repository import ReportRepository
 
@@ -27,6 +23,9 @@ from backend.services.scraping_service import ScrapingService
 from backend.services.search_service import SearchService
 
 from backend.agents.data_agent import DataAgent
+from backend.agents.comprehensive_agent import ComprehensiveAnalysisAgent
+from backend.agents.final_synthesis_agent import FinalSynthesisAndScoringAgent
+
 from backend.agents.market_agent import MarketAgent
 from backend.agents.competitor_agent import CompetitorAgent
 from backend.agents.skeptic_agent import SkepticAgent
@@ -36,17 +35,12 @@ from backend.agents.contradiction_agent import ContradictionAgent
 from backend.agents.synthesizer import SynthesizerAgent
 from backend.agents.scoring_engine import ScoringEngine
 
-# ── Logger ───────────────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
 
 
 class MainOrchestrator:
     """
-    Coordinates the full 5-phase analysis pipeline.
-
-    This class is designed to be called from a FastAPI BackgroundTask.
-    It creates its own database session (since the request-scoped
-    session is already closed by the time background work starts).
+    Coordinates the full analysis pipeline.
     """
 
     async def run_analysis(
@@ -55,22 +49,11 @@ class MainOrchestrator:
         input_type: str,
         content: str,
     ) -> None:
-        """
-        Execute the complete analysis pipeline.
-
-        Parameters
-        ----------
-        analysis_id : str
-            UUID of the Report row to update.
-        input_type : str
-            "url" or "text".
-        content : str
-            The raw input from the user.
-        """
         logger.info(
-            "Orchestrator started  ▸  analysis_id=%s  input_type=%s",
+            "Orchestrator started  ▸  analysis_id=%s  input_type=%s  mode=%s",
             analysis_id,
             input_type,
+            settings.ANALYSIS_MODE,
         )
 
         async with async_session_maker() as session:
@@ -99,139 +82,207 @@ class MainOrchestrator:
                 
                 await repo.update_report_field(analysis_id, "company_brief", company_brief)
 
-                # ── Phase 2: Parallel Agent Analysis ─────────────────
-                await repo.update_status(analysis_id, "analysis")
-                logger.info("[Phase 2] Agent analysis for %s", analysis_id)
-                
-                # Fetch search results for context
-                search_service = SearchService()
-                company_name = company_brief.get("core_value_prop", "Startup")
-                search_results_data = await search_service.search(f"{company_name} market competitors")
-                search_results = "\n".join(
-                    [f"- {r['title']}: {r['snippet']} ({r.get('link', '')})" for r in search_results_data]
-                )
+                if settings.ANALYSIS_MODE == "optimized":
+                    # ── OPTIMIZED MODE: 3 Calls Total ──────────────────────────
+                    
+                    # Phase 2: Comprehensive Analysis (1 Call)
+                    await repo.update_status(analysis_id, "analysis")
+                    logger.info("[Phase 2] Comprehensive analysis (optimized) for %s", analysis_id)
+                    search_service = SearchService()
+                    company_name = company_brief.get("core_value_prop", "Startup")
+                    search_results_data = await search_service.search(f"{company_name} market competitors")
+                    search_results = "\n".join(
+                        [f"- {r['title']}: {r['snippet']} ({r.get('link', '')})" for r in search_results_data]
+                    )
 
-                market_agent = MarketAgent()
-                competitor_agent = CompetitorAgent()
-                skeptic_agent = SkepticAgent()
-                assumption_agent = AssumptionAgent()
-                execution_agent = ExecutionAgent()
+                    comprehensive_agent = ComprehensiveAnalysisAgent()
+                    comprehensive_analysis = await comprehensive_agent.run({
+                        "company_brief": str(company_brief),
+                        "search_results": search_results
+                    })
 
-                market_task = market_agent.run({
-                    "company_brief": str(company_brief),
-                    "search_results": search_results
-                })
-                competitor_task = competitor_agent.run({
-                    "company_brief": str(company_brief),
-                    "search_results": search_results
-                })
-                skeptic_task = skeptic_agent.run({
-                    "company_brief": str(company_brief),
-                    "search_results": search_results
-                })
-                assumption_task = assumption_agent.run({
-                    "company_brief": str(company_brief)
-                })
-                execution_task = execution_agent.run({
-                    "company_brief": str(company_brief)
-                })
+                    if "error" in comprehensive_analysis:
+                        raise RuntimeError(f"ComprehensiveAnalysisAgent failed: {comprehensive_analysis['error']}")
 
-                market_analysis, competitor_analysis, skeptic_analysis, assumptions, execution_feasibility = await asyncio.gather(
-                    market_task, competitor_task, skeptic_task, assumption_task, execution_task,
-                    return_exceptions=True
-                )
+                    # Update granular database fields
+                    market_analysis = comprehensive_analysis.get("market_analysis", {})
+                    competitor_analysis = comprehensive_analysis.get("competitor_analysis", {})
+                    skeptic_analysis = comprehensive_analysis.get("skeptic_analysis", {})
+                    assumptions = comprehensive_analysis.get("assumptions", {})
+                    execution_feasibility = comprehensive_analysis.get("execution_feasibility", {})
 
-                # Helper to handle exceptions
-                def safe_result(res, agent):
-                    if isinstance(res, Exception):
-                        logger.error("%s failed: %s", agent.agent_name, res)
-                        return agent._build_error_output(str(res))
-                    return res
+                    await repo.update_report_field(analysis_id, "market_analysis", market_analysis)
+                    await repo.update_report_field(analysis_id, "competitor_analysis", competitor_analysis)
+                    await repo.update_report_field(analysis_id, "skeptic_analysis", skeptic_analysis)
+                    await repo.update_report_field(analysis_id, "assumptions", assumptions)
+                    await repo.update_report_field(analysis_id, "execution_feasibility", execution_feasibility)
 
-                market_analysis = safe_result(market_analysis, market_agent)
-                competitor_analysis = safe_result(competitor_analysis, competitor_agent)
-                skeptic_analysis = safe_result(skeptic_analysis, skeptic_agent)
-                assumptions = safe_result(assumptions, assumption_agent)
-                execution_feasibility = safe_result(execution_feasibility, execution_agent)
+                    # Populate relational tables
+                    if isinstance(competitor_analysis, dict) and "competitors" in competitor_analysis:
+                        await repo.add_competitors(analysis_id, competitor_analysis["competitors"])
+                    if isinstance(assumptions, dict) and "core_assumptions" in assumptions:
+                        await repo.add_assumptions(analysis_id, assumptions["core_assumptions"])
+                    if isinstance(skeptic_analysis, dict) and "top_risks" in skeptic_analysis:
+                        await repo.add_risk_analyses(analysis_id, skeptic_analysis["top_risks"])
 
-                await repo.update_report_field(analysis_id, "market_analysis", market_analysis)
-                await repo.update_report_field(analysis_id, "competitor_analysis", competitor_analysis)
-                await repo.update_report_field(analysis_id, "skeptic_analysis", skeptic_analysis)
-                await repo.update_report_field(analysis_id, "assumptions", assumptions)
-                await repo.update_report_field(analysis_id, "execution_feasibility", execution_feasibility)
+                    # Phase 3-5: Synthesis & Scoring (1 Call)
+                    await repo.update_status(analysis_id, "synthesis")
+                    logger.info("[Phase 3-5] Final Synthesis & Scoring (optimized) for %s", analysis_id)
+                    
+                    final_agent = FinalSynthesisAndScoringAgent()
+                    final_result = await final_agent.run({
+                        "company_brief": str(company_brief),
+                        "comprehensive_analysis": str(comprehensive_analysis)
+                    })
 
-                # Also populate relational tables if possible
-                if isinstance(competitor_analysis, dict) and "competitors" in competitor_analysis:
-                    await repo.add_competitors(analysis_id, competitor_analysis["competitors"])
-                elif isinstance(competitor_analysis, list) and competitor_analysis:
-                    await repo.add_competitors(analysis_id, competitor_analysis)
+                    if "error" in final_result:
+                        raise RuntimeError(f"FinalSynthesisAndScoringAgent failed: {final_result['error']}")
 
-                if isinstance(assumptions, dict) and "core_assumptions" in assumptions:
-                    await repo.add_assumptions(analysis_id, assumptions["core_assumptions"])
-                elif isinstance(assumptions, list) and assumptions:
-                    await repo.add_assumptions(analysis_id, assumptions)
+                    contradictions = {"identified_contradictions": final_result.get("identified_contradictions", [])}
+                    synthesized_memo = final_result.get("synthesized_memo", {})
+                    scoring_result = final_result.get("scoring", {})
 
-                if isinstance(skeptic_analysis, dict) and "top_risks" in skeptic_analysis:
-                    await repo.add_risk_analyses(analysis_id, skeptic_analysis["top_risks"])
-                elif isinstance(skeptic_analysis, list) and skeptic_analysis:
-                    await repo.add_risk_analyses(analysis_id, skeptic_analysis)
+                    await repo.update_report_field(analysis_id, "contradictions", contradictions)
+                    await repo.update_report_field(analysis_id, "synthesized_memo", synthesized_memo)
+                    
+                    await repo.update_status(analysis_id, "scoring")
 
-                # ── Phase 3: Cross-Validation ────────────────────────
-                await repo.update_status(analysis_id, "contradictions")
-                logger.info("[Phase 3] Cross-validation for %s", analysis_id)
-                
-                contradiction_agent = ContradictionAgent()
-                contradictions = await contradiction_agent.run({
-                    "company_brief": str(company_brief),
-                    "market_analysis": str(market_analysis),
-                    "competitor_analysis": str(competitor_analysis),
-                    "skeptic_analysis": str(skeptic_analysis),
-                    "assumptions": str(assumptions),
-                    "execution_feasibility": str(execution_feasibility)
-                })
-                await repo.update_report_field(analysis_id, "contradictions", contradictions)
-
-                # ── Phase 4: Synthesis ───────────────────────────────
-                await repo.update_status(analysis_id, "synthesis")
-                logger.info("[Phase 4] Synthesis for %s", analysis_id)
-                
-                synthesizer = SynthesizerAgent()
-                synthesized_memo = await synthesizer.run({
-                    "company_brief": str(company_brief),
-                    "market_analysis": str(market_analysis),
-                    "competitor_analysis": str(competitor_analysis),
-                    "skeptic_analysis": str(skeptic_analysis),
-                    "assumptions": str(assumptions),
-                    "execution_feasibility": str(execution_feasibility),
-                    "contradictions": str(contradictions)
-                })
-                await repo.update_report_field(analysis_id, "synthesized_memo", synthesized_memo)
-
-                # ── Phase 5: Scoring ─────────────────────────────────
-                await repo.update_status(analysis_id, "scoring")
-                logger.info("[Phase 5] Scoring for %s", analysis_id)
-                
-                scoring_engine = ScoringEngine()
-                scoring_result = await scoring_engine.run({
-                    "synthesized_memo": synthesized_memo
-                })
-                
-                if "error" not in scoring_result:
-                    # Update report top-level fields
                     await repo.update_report_field(analysis_id, "overall_confidence_score", scoring_result.get("total_score", 0.0) / 100)
                     await repo.update_report_field(analysis_id, "investment_signal", scoring_result.get("investment_signal", "WEAK"))
                     
-                    # Synthesized memo typically contains red_flags
                     red_flags = synthesized_memo.get("red_flags", []) if isinstance(synthesized_memo, dict) else []
                     await repo.update_report_field(analysis_id, "red_flags", {"flags": red_flags})
                     
-                    # Insert ScoreBreakdown relational entity
                     await repo.set_score_breakdown(analysis_id, scoring_result)
+
                 else:
-                    logger.warning(
-                        "[Phase 5] Scoring engine returned error for %s: %s",
-                        analysis_id, scoring_result.get("error"),
+                    # ── FULL MODE: 9 Calls Total ──────────────────────────
+                    
+                    # ── Phase 2: Parallel Agent Analysis ─────────────────
+                    await repo.update_status(analysis_id, "analysis")
+                    logger.info("[Phase 2] Agent analysis for %s", analysis_id)
+                    
+                    search_service = SearchService()
+                    company_name = company_brief.get("core_value_prop", "Startup")
+                    search_results_data = await search_service.search(f"{company_name} market competitors")
+                    search_results = "\n".join(
+                        [f"- {r['title']}: {r['snippet']} ({r.get('link', '')})" for r in search_results_data]
                     )
+
+                    market_agent = MarketAgent()
+                    competitor_agent = CompetitorAgent()
+                    skeptic_agent = SkepticAgent()
+                    assumption_agent = AssumptionAgent()
+                    execution_agent = ExecutionAgent()
+
+                    market_task = market_agent.run({
+                        "company_brief": str(company_brief),
+                        "search_results": search_results
+                    })
+                    competitor_task = competitor_agent.run({
+                        "company_brief": str(company_brief),
+                        "search_results": search_results
+                    })
+                    skeptic_task = skeptic_agent.run({
+                        "company_brief": str(company_brief),
+                        "search_results": search_results
+                    })
+                    assumption_task = assumption_agent.run({
+                        "company_brief": str(company_brief)
+                    })
+                    execution_task = execution_agent.run({
+                        "company_brief": str(company_brief)
+                    })
+
+                    market_analysis, competitor_analysis, skeptic_analysis, assumptions, execution_feasibility = await asyncio.gather(
+                        market_task, competitor_task, skeptic_task, assumption_task, execution_task,
+                        return_exceptions=True
+                    )
+
+                    def safe_result(res, agent):
+                        if isinstance(res, Exception):
+                            logger.error("%s failed: %s", agent.agent_name, res)
+                            return agent._build_error_output(str(res))
+                        return res
+
+                    market_analysis = safe_result(market_analysis, market_agent)
+                    competitor_analysis = safe_result(competitor_analysis, competitor_agent)
+                    skeptic_analysis = safe_result(skeptic_analysis, skeptic_agent)
+                    assumptions = safe_result(assumptions, assumption_agent)
+                    execution_feasibility = safe_result(execution_feasibility, execution_agent)
+
+                    await repo.update_report_field(analysis_id, "market_analysis", market_analysis)
+                    await repo.update_report_field(analysis_id, "competitor_analysis", competitor_analysis)
+                    await repo.update_report_field(analysis_id, "skeptic_analysis", skeptic_analysis)
+                    await repo.update_report_field(analysis_id, "assumptions", assumptions)
+                    await repo.update_report_field(analysis_id, "execution_feasibility", execution_feasibility)
+
+                    if isinstance(competitor_analysis, dict) and "competitors" in competitor_analysis:
+                        await repo.add_competitors(analysis_id, competitor_analysis["competitors"])
+                    elif isinstance(competitor_analysis, list) and competitor_analysis:
+                        await repo.add_competitors(analysis_id, competitor_analysis)
+
+                    if isinstance(assumptions, dict) and "core_assumptions" in assumptions:
+                        await repo.add_assumptions(analysis_id, assumptions["core_assumptions"])
+                    elif isinstance(assumptions, list) and assumptions:
+                        await repo.add_assumptions(analysis_id, assumptions)
+
+                    if isinstance(skeptic_analysis, dict) and "top_risks" in skeptic_analysis:
+                        await repo.add_risk_analyses(analysis_id, skeptic_analysis["top_risks"])
+                    elif isinstance(skeptic_analysis, list) and skeptic_analysis:
+                        await repo.add_risk_analyses(analysis_id, skeptic_analysis)
+
+                    # ── Phase 3: Cross-Validation ────────────────────────
+                    await repo.update_status(analysis_id, "contradictions")
+                    logger.info("[Phase 3] Cross-validation for %s", analysis_id)
+                    
+                    contradiction_agent = ContradictionAgent()
+                    contradictions = await contradiction_agent.run({
+                        "company_brief": str(company_brief),
+                        "market_analysis": str(market_analysis),
+                        "competitor_analysis": str(competitor_analysis),
+                        "skeptic_analysis": str(skeptic_analysis),
+                        "assumptions": str(assumptions),
+                        "execution_feasibility": str(execution_feasibility)
+                    })
+                    await repo.update_report_field(analysis_id, "contradictions", contradictions)
+
+                    # ── Phase 4: Synthesis ───────────────────────────────
+                    await repo.update_status(analysis_id, "synthesis")
+                    logger.info("[Phase 4] Synthesis for %s", analysis_id)
+                    
+                    synthesizer = SynthesizerAgent()
+                    synthesized_memo = await synthesizer.run({
+                        "company_brief": str(company_brief),
+                        "market_analysis": str(market_analysis),
+                        "competitor_analysis": str(competitor_analysis),
+                        "skeptic_analysis": str(skeptic_analysis),
+                        "assumptions": str(assumptions),
+                        "execution_feasibility": str(execution_feasibility),
+                        "contradictions": str(contradictions)
+                    })
+                    await repo.update_report_field(analysis_id, "synthesized_memo", synthesized_memo)
+
+                    # ── Phase 5: Scoring ─────────────────────────────────
+                    await repo.update_status(analysis_id, "scoring")
+                    logger.info("[Phase 5] Scoring for %s", analysis_id)
+                    
+                    scoring_engine = ScoringEngine()
+                    scoring_result = await scoring_engine.run({
+                        "synthesized_memo": synthesized_memo
+                    })
+                    
+                    if "error" not in scoring_result:
+                        await repo.update_report_field(analysis_id, "overall_confidence_score", scoring_result.get("total_score", 0.0) / 100)
+                        await repo.update_report_field(analysis_id, "investment_signal", scoring_result.get("investment_signal", "WEAK"))
+                        red_flags = synthesized_memo.get("red_flags", []) if isinstance(synthesized_memo, dict) else []
+                        await repo.update_report_field(analysis_id, "red_flags", {"flags": red_flags})
+                        await repo.set_score_breakdown(analysis_id, scoring_result)
+                    else:
+                        logger.warning(
+                            "[Phase 5] Scoring engine returned error for %s: %s",
+                            analysis_id, scoring_result.get("error"),
+                        )
 
                 # ── Mark as completed ────────────────────────────────
                 await repo.update_status(analysis_id, "completed")

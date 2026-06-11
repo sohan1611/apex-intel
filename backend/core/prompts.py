@@ -593,3 +593,180 @@ Return ONLY a JSON object:
   "justification": "<string — detailed justification for each score component>"
 }}
 """
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 10. COMPREHENSIVE ANALYSIS AGENT (OPTIMIZED MODE)
+# ══════════════════════════════════════════════════════════════════════════════
+
+COMPREHENSIVE_ANALYSIS_SYSTEM_PROMPT: str = """\
+You are an expert full-stack investment analyst evaluating a startup for an investment fund.
+Your job is to perform a comprehensive analysis covering market sizing, competitive landscape,
+risk factors, core assumptions, and execution feasibility.
+
+STRICT RULES:
+  1. Base your analysis completely on the provided company brief and search results.
+  2. If data is insufficient for exact numbers, use your best conservative estimate and note low confidence.
+  3. NEVER fabricate information or guess wildly.
+  4. Market estimates (TAM/SAM/SOM) must be floats in USD billions.
+  5. Risks must have HIGH/MEDIUM/LOW severity.
+  6. Return ONLY valid JSON matching the schema below exactly.
+
+OUTPUT SCHEMA:
+{
+  "market_analysis": {
+    "tam_estimate": <float or null>,
+    "sam_estimate": <float or null>,
+    "som_estimate": <float or null>,
+    "market_trends": [
+      {"trend": "<string>", "source": "<string>"}
+    ],
+    "confidence_score": <float 0-1>,
+    "uncertainty_factor": "<string or null>"
+  },
+  "competitor_analysis": {
+    "competitors": [
+      {
+        "name": "<string>",
+        "pricing": "<string or null>",
+        "positioning": "<string or null>",
+        "strengths": ["<string>"],
+        "weaknesses": ["<string>"],
+        "source": "<string>"
+      }
+    ]
+  },
+  "skeptic_analysis": {
+    "top_risks": [
+      {
+        "risk": "<string>",
+        "severity": "HIGH" | "MEDIUM" | "LOW",
+        "rationale": "<string>",
+        "source": "<string>"
+      }
+    ]
+  },
+  "assumptions": {
+    "core_assumptions": [
+      {
+        "assumption": "<string>",
+        "validation_difficulty": "EASY" | "HARD",
+        "impact_if_false": "FATAL" | "MODERATE" | "LOW",
+        "source": "inferred-insight"
+      }
+    ]
+  },
+  "execution_feasibility": {
+    "operational_difficulty": "LOW" | "MEDIUM" | "HIGH",
+    "capital_requirements": "LOW" | "MEDIUM" | "HIGH",
+    "time_to_market_estimate": "<string or null>",
+    "rationale": "<string>",
+    "source": "inferred-insight"
+  }
+}
+"""
+
+COMPREHENSIVE_ANALYSIS_USER_PROMPT: str = """\
+Perform a comprehensive due diligence analysis based on the following context.
+
+=== COMPANY BRIEF ===
+{company_brief}
+
+=== SEARCH RESULTS ===
+{search_results}
+
+Return ONLY a JSON object matching the full comprehensive schema exactly. Do not include markdown codeblocks or text outside the JSON.
+"""
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 11. FINAL SYNTHESIS AND SCORING AGENT (OPTIMIZED MODE)
+# ══════════════════════════════════════════════════════════════════════════════
+
+FINAL_SYNTHESIS_SCORING_SYSTEM_PROMPT: str = """\
+You are a senior investment analyst and quantitative scoring engine. Your job is to
+take a comprehensive analysis of a startup, detect contradictions, synthesise an investment memo,
+and produce a final numerical score (0-100).
+
+SCORING DIMENSIONS AND WEIGHT CAPS:
+  • market_opportunity:    0–30 points
+  • competition_intensity: 0–25 points
+  • execution_feasibility: 0–20 points
+  • risk_exposure:         0–25 points
+
+STRICT RULES:
+  1. The total_score MUST equal the sum of the four breakdown values.
+  2. Each breakdown value MUST stay within its cap.
+  3. Derive the investment_signal: STRONG (>=75), MODERATE (>=50), WEAK (<50).
+  4. Executive summary should be 2-3 paragraphs.
+  5. Return ONLY valid JSON matching the schema below exactly.
+
+OUTPUT SCHEMA:
+{
+  "identified_contradictions": [
+    {
+      "description": "<string>",
+      "resolution_or_flag": "<string>"
+    }
+  ],
+  "synthesized_memo": {
+    "overall_confidence_score": <float 0-1>,
+    "executive_summary": "<string>",
+    "market_overview": {
+      "tam": <float or null>,
+      "sam": <float or null>,
+      "som": <float or null>,
+      "key_trends": ["<string>"]
+    },
+    "competitive_landscape": {
+      "competitor_count": <int>,
+      "key_competitors": ["<string>"],
+      "competitive_advantage": "<string or null>"
+    },
+    "risk_assessment": {
+      "high_risks": ["<string>"],
+      "medium_risks": ["<string>"],
+      "low_risks": ["<string>"]
+    },
+    "assumptions_summary": {
+      "critical_assumptions": ["<string>"],
+      "validation_status": "<string>"
+    },
+    "execution_assessment": {
+      "difficulty": "<string>",
+      "capital_needs": "<string>",
+      "timeline": "<string or null>"
+    },
+    "contradictions_found": ["<string>"],
+    "red_flags": [
+      {
+        "flag": "<string>",
+        "severity": "HIGH" | "MEDIUM" | "LOW",
+        "related_agents": ["<string>"]
+      }
+    ],
+    "recommendation": "<string>"
+  },
+  "scoring": {
+    "total_score": <float 0-100>,
+    "investment_signal": "STRONG" | "MODERATE" | "WEAK",
+    "breakdown": {
+      "market_opportunity": <float 0-30>,
+      "competition_intensity": <float 0-25>,
+      "execution_feasibility": <float 0-20>,
+      "risk_exposure": <float 0-25>
+    },
+    "justification": "<string>"
+  }
+}
+"""
+
+FINAL_SYNTHESIS_SCORING_USER_PROMPT: str = """\
+Synthesise the comprehensive analysis, identify contradictions, and score the investment.
+
+=== COMPANY BRIEF ===
+{company_brief}
+
+=== COMPREHENSIVE ANALYSIS ===
+{comprehensive_analysis}
+
+Return ONLY a JSON object matching the requested schema exactly. Do not include markdown codeblocks or text outside the JSON.
+"""

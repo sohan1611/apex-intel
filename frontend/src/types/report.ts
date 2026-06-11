@@ -254,6 +254,7 @@ export interface AnalysisStatus {
   status: string;
   progress: number;
   current_phase: string;
+  error_log?: { error: string; phase?: string } | null;
 }
 
 // ──────────────────────────────────────────────
