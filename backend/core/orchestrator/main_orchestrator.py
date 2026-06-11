@@ -218,7 +218,7 @@ class MainOrchestrator:
                 
                 if "error" not in scoring_result:
                     # Update report top-level fields
-                    await repo.update_report_field(analysis_id, "overall_confidence_score", scoring_result.get("total_score", 0.0))
+                    await repo.update_report_field(analysis_id, "overall_confidence_score", scoring_result.get("total_score", 0.0) / 100)
                     await repo.update_report_field(analysis_id, "investment_signal", scoring_result.get("investment_signal", "WEAK"))
                     
                     # Synthesized memo typically contains red_flags

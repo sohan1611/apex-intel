@@ -141,7 +141,7 @@ export default function AnalysisDashboardPage() {
                     Analysis Complete
                   </p>
                   <p className="text-xs text-text-secondary mt-0.5">
-                    Investment memo generated with 67/100 score · MODERATE signal
+                    Your investment memo is ready. Click below to view the full report.
                   </p>
                 </div>
               </div>
@@ -157,17 +157,27 @@ export default function AnalysisDashboardPage() {
 
           {isFailed && (
             <div className="mt-8 rounded-lg border border-signal-weak/30 bg-signal-weak/5 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-               <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <AlertCircle className="h-6 w-6 text-signal-weak flex-shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-text-primary">
                     Analysis Failed
                   </p>
                   <p className="text-xs text-text-secondary mt-0.5">
-                    The backend orchestrator encountered an error while processing this request.
+                    {data?.error_log?.error
+                      ? data.error_log.error.includes('RESOURCE_EXHAUSTED') || data.error_log.error.includes('quota')
+                        ? 'The AI service daily quota has been exceeded. Please try again after midnight Pacific Time.'
+                        : `Error: ${data.error_log.error}`
+                      : 'The backend orchestrator encountered an error while processing this request.'}
                   </p>
                 </div>
               </div>
+              <Link
+                href="/analyze"
+                className="flex items-center gap-2 rounded-lg border border-border-default bg-bg-secondary hover:bg-bg-tertiary text-text-primary px-5 py-2.5 text-sm font-medium transition-all duration-200 flex-shrink-0"
+              >
+                ← Try Again
+              </Link>
             </div>
           )}
         </div>

@@ -18,6 +18,7 @@ import { SignalBadge } from '@/components/ui/SignalBadge';
 import { useReport } from '@/hooks/use-api';
 import { useParams } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { formatPercentage } from '@/lib/utils';
 
 // -- Section jump targets --
 
@@ -146,7 +147,7 @@ export default function ReportPage() {
                 <div className="flex flex-col">
                   <span className="text-xs text-text-muted">Confidence</span>
                   <span className="text-lg font-semibold text-text-primary">
-                    {Math.round(confidence * 100)}%
+                    {formatPercentage(confidence)}
                   </span>
                 </div>
                 <div className="flex flex-col">
