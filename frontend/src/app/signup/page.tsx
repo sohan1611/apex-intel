@@ -8,7 +8,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
 
-function LoginForm() {
+function SignupForm() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -16,6 +16,7 @@ function LoginForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -32,27 +33,42 @@ function LoginForm() {
     await signIn('google', { callbackUrl });
   };
 
-  const handleCredentialsLogin = async (e: React.FormEvent) => {
+  const handleCredentialsSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     
     try {
-      const res = await signIn('credentials', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${apiUrl}/api/v1/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.detail || 'Registration failed.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Automatically sign in after successful registration
+      const signInRes = await signIn('credentials', {
         redirect: false,
         email,
         password,
         callbackUrl,
       });
 
-      if (res?.error) {
-        setError('Invalid email or password. Please try again.');
+      if (signInRes?.error) {
+        setError('Registered successfully, but failed to sign in automatically.');
         setIsLoading(false);
-      } else if (res?.url) {
-        router.push(res.url);
+      } else if (signInRes?.url) {
+        router.push(signInRes.url);
       }
     } catch (err) {
-      setError('An error occurred during sign in.');
+      setError('An error occurred during registration.');
       setIsLoading(false);
     }
   };
@@ -68,10 +84,10 @@ function LoginForm() {
       </div>
 
       <h1 className="text-2xl font-bold tracking-tight mb-2">
-        Sign in to Apex Intel
+        Create an Account
       </h1>
       <p className="text-text-secondary text-sm mb-6">
-        Access your institutional-grade due diligence platform
+        Join Apex Intel for institutional-grade due diligence
       </p>
 
       {error && (
@@ -80,7 +96,18 @@ function LoginForm() {
         </div>
       )}
 
-      <form onSubmit={handleCredentialsLogin} className="space-y-4 mb-6">
+      <form onSubmit={handleCredentialsSignup} className="space-y-4 mb-6">
+        <div className="text-left">
+          <label className="block text-sm font-medium text-text-secondary mb-1">Full Name</label>
+          <input 
+            type="text" 
+            required 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-bg-tertiary border border-border-default rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+            placeholder="John Doe"
+          />
+        </div>
         <div className="text-left">
           <label className="block text-sm font-medium text-text-secondary mb-1">Email</label>
           <input 
@@ -99,6 +126,7 @@ function LoginForm() {
             required 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
             className="w-full bg-bg-tertiary border border-border-default rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
             placeholder="••••••••"
           />
@@ -109,7 +137,7 @@ function LoginForm() {
           className="w-full bg-accent-primary hover:bg-accent-hover text-white py-2.5 rounded-lg font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 shadow-sm"
         >
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isLoading ? 'Signing in...' : 'Sign In'}
+          {isLoading ? 'Creating account...' : 'Sign Up'}
         </button>
       </form>
 
@@ -142,16 +170,16 @@ function LoginForm() {
       </button>
 
       <p className="mt-6 text-sm text-text-secondary">
-        Don't have an account?{' '}
-        <Link href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-accent-primary hover:underline font-medium">
-          Sign up
+        Already have an account?{' '}
+        <Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-accent-primary hover:underline font-medium">
+          Sign in
         </Link>
       </p>
     </div>
   );
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary font-sans text-text-primary">
       <Navbar />
@@ -161,7 +189,7 @@ export default function LoginPage() {
             <Loader2 className="h-8 w-8 animate-spin text-accent-primary" />
           </div>
         }>
-          <LoginForm />
+          <SignupForm />
         </Suspense>
       </main>
       <Footer />
