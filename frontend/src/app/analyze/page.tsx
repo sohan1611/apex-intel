@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -22,6 +22,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAnalyze, useReports } from '@/hooks/use-api';
+import { useSession } from 'next-auth/react';
 
 // -- Helpers --
 
@@ -91,8 +92,15 @@ export default function AnalyzePage() {
   const [urlValue, setUrlValue] = useState('');
   const [urlTouched, setUrlTouched] = useState(false);
 
+  const { status } = useSession();
   const analyzeMutation = useAnalyze();
   const { data: reportsData } = useReports();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login?callbackUrl=/analyze');
+    }
+  }, [status, router]);
 
   const currentValue = mode === 'text' ? textValue : urlValue;
   const isUrlInvalid = mode === 'url' && urlTouched && urlValue.length > 0 && !isValidUrl(urlValue);

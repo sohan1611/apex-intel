@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/", // Or wherever you trigger login
+    signIn: "/login",
   },
 };
 
