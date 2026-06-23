@@ -32,3 +32,7 @@ redis>=5.0.0                       # Redis client (caching, pub/sub)
 pytest>=8.0.0
 pytest-asyncio>=0.24.0             # Async test support
 tenacity>=8.2.0
+
+# ── Authentication ───────────────────────────────────────────────────────
+pyjwt>=2.8.0                       # JWT creation and verification
+google-auth>=2.29.0                # Verifying Google id_tokens

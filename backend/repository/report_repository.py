@@ -55,6 +55,7 @@ class ReportRepository:
         self,
         input_type: str,
         input_content: str,
+        user_id: str | None = None,
     ) -> Report:
         """
         Create a new Report row with status='queued'.
@@ -73,6 +74,7 @@ class ReportRepository:
             UUID primary key and timestamps).
         """
         report = Report(
+            user_id=user_id,
             input_type=input_type,
             input_content=input_content,
             status="queued",
@@ -120,6 +122,7 @@ class ReportRepository:
         self,
         skip: int = 0,
         limit: int = 20,
+        user_id: str | None = None,
     ) -> Sequence[Report]:
         """
         Retrieve a paginated list of reports, newest first.
@@ -136,19 +139,18 @@ class ReportRepository:
         Sequence[Report]
             List of Report ORM instances.
         """
-        stmt = (
-            select(Report)
-            .order_by(Report.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        )
+        stmt = select(Report)
+        if user_id:
+            stmt = stmt.where(Report.user_id == uuid.UUID(user_id))
+            
+        stmt = stmt.order_by(Report.created_at.desc()).offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
     # ─────────────────────────────────────────────────────────────────
     #  COUNT — for pagination metadata
     # ─────────────────────────────────────────────────────────────────
-    async def count_reports(self) -> int:
+    async def count_reports(self, user_id: str | None = None) -> int:
         """
         Return the total number of reports in the database.
 
@@ -161,6 +163,8 @@ class ReportRepository:
             Total row count.
         """
         stmt = select(func.count()).select_from(Report)
+        if user_id:
+            stmt = stmt.where(Report.user_id == uuid.UUID(user_id))
         result = await self._session.execute(stmt)
         return result.scalar_one()
 

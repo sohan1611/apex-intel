@@ -42,6 +42,9 @@ from backend.repository.report_repository import ReportRepository
 
 # The main orchestrator that runs the 5-phase agent pipeline
 from backend.core.orchestrator.main_orchestrator import MainOrchestrator
+from backend.core.security import get_current_user
+from backend.core.feature_gates import check_usage_limit, can_use_nine_agent_pipeline
+from backend.db.models import User
 
 # ── Logger setup ─────────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
@@ -69,6 +72,7 @@ async def create_analysis(
     request: AnalyzeRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> AnalyzeResponse:
     """
     Create a new analysis job.
@@ -90,8 +94,29 @@ async def create_analysis(
         If the database write fails or an unexpected error occurs.
     """
     try:
+        # ── Step 0: Check usage limit ────────────────────────────────
+        using_credit = check_usage_limit(current_user)
+        mode = "full" if can_use_nine_agent_pipeline(current_user.subscription.tier, using_credit) else "optimized"
+        model_name = settings.PREMIUM_MODEL if can_use_premium_model(current_user.subscription.tier, using_credit) else settings.FREE_MODEL
+
         # ── Step 1: Create a repository instance for DB operations ───
         report_repo = ReportRepository(db)
+        
+        # ── Step 1.5: Increment usage quota ──────────────────────────
+        if using_credit:
+            current_user.analysis_credits.purchased_credits -= 1
+            db.add(current_user.analysis_credits)
+            history = CreditUsageHistory(
+                user_id=current_user.id,
+                amount=-1,
+                transaction_type="USAGE"
+            )
+            db.add(history)
+        else:
+            current_user.usage_tracking.analyses_used += 1
+            db.add(current_user.usage_tracking)
+            
+        await db.commit()
 
         # ── Step 2: Persist the new report with status='queued' ──────
         # The repository returns the full ORM model (or a dict) with
@@ -99,6 +124,7 @@ async def create_analysis(
         report = await report_repo.create_report(
             input_type=request.input_type,
             input_content=request.content,
+            user_id=str(current_user.id),
         )
 
         # Extract the report ID (UUID) that was generated
@@ -119,6 +145,8 @@ async def create_analysis(
             analysis_id=str(analysis_id),
             input_type=request.input_type,
             content=request.content,
+            mode=mode,
+            model_name=model_name,
         )
 
         # ── Step 4: Return immediate response ───────────────────────
@@ -156,6 +184,7 @@ async def create_analysis(
 async def get_analysis_status(
     analysis_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ReportStatusResponse:
     """
     Poll the processing status of an existing analysis.
@@ -182,7 +211,7 @@ async def get_analysis_status(
         report = await report_repo.get_report_by_id(str(analysis_id))
 
         # If the report doesn't exist, return a clear 404
-        if report is None:
+        if report is None or str(report.user_id) != str(current_user.id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Analysis with id '{analysis_id}' not found.",
@@ -285,6 +314,8 @@ async def _run_analysis_pipeline(
     analysis_id: str,
     input_type: str,
     content: str,
+    mode: str = "optimized",
+    model_name: str = "gemini-2.5-flash",
 ) -> None:
     """
     Execute the full 5-phase orchestrator pipeline in the background.
@@ -306,6 +337,8 @@ async def _run_analysis_pipeline(
             analysis_id=analysis_id,
             input_type=input_type,
             content=content,
+            mode=mode,
+            model_name=model_name,
         )
 
         logger.info("Analysis pipeline completed for %s", analysis_id)

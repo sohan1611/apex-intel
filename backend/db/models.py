@@ -66,7 +66,117 @@ def _utcnow() -> datetime:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 1. Report — the central entity
+# 1. User & Subscription Models
+# ═══════════════════════════════════════════════════════════════════════════
+class User(Base):
+    """Represents an authenticated user in the platform."""
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    google_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    avatar: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False)
+
+    subscription: Mapped[Subscription | None] = relationship(
+        "Subscription",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    usage_tracking: Mapped[UsageTracking | None] = relationship(
+        "UsageTracking",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    analysis_credits: Mapped[AnalysisCredit | None] = relationship(
+        "AnalysisCredit",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    reports: Mapped[list[Report]] = relationship(
+        "Report",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+
+class Subscription(Base):
+    """Tracks a user's subscription tier."""
+    __tablename__ = "subscriptions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    
+    tier: Mapped[str] = mapped_column(String(50), default="FREE", nullable=False) # FREE, PRO_LITE, PRO
+    status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False)
+
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False)
+
+    user: Mapped[User] = relationship("User", back_populates="subscription")
+
+class UsageTracking(Base):
+    """Tracks a user's monthly usage against their subscription limits."""
+    __tablename__ = "usage_tracking"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    analyses_used: Mapped[int] = mapped_column(default=0, nullable=False)
+    monthly_reset_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    user: Mapped[User] = relationship("User", back_populates="usage_tracking")
+
+class AnalysisCredit(Base):
+    """Tracks a user's purchased credits for Pay-Per-Analysis usage."""
+    __tablename__ = "analysis_credits"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    purchased_credits: Mapped[int] = mapped_column(default=0, nullable=False)
+
+    user: Mapped[User] = relationship("User", back_populates="analysis_credits")
+
+class CreditUsageHistory(Base):
+    """Immutable ledger of credit purchases and consumption."""
+    __tablename__ = "credit_usage_history"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    amount: Mapped[int] = mapped_column(nullable=False) # Positive for purchase, negative for usage
+    transaction_type: Mapped[str] = mapped_column(String(50), nullable=False) # PURCHASE, USAGE
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 2. Report — the central entity
 # ═══════════════════════════════════════════════════════════════════════════
 class Report(Base):
     """Represents a single due-diligence analysis run.
@@ -103,6 +213,14 @@ class Report(Base):
         primary_key=True,
         default=uuid.uuid4,
         comment="Unique identifier for this report",
+    )
+
+    # ── Ownership ────────────────────────────────────────────────────────
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=True, # Nullable for backward compatibility with old reports
+        comment="User who owns this report",
     )
 
     # ── Input ────────────────────────────────────────────────────────────
@@ -187,6 +305,11 @@ class Report(Base):
     )
 
     # ── Relationships (one-to-many) ──────────────────────────────────────
+    user: Mapped[User | None] = relationship(
+        "User",
+        back_populates="reports",
+        lazy="selectin",
+    )
     # `cascade="all, delete-orphan"` means deleting a Report also deletes
     # its child rows — keeps the database tidy.
     score_breakdown: Mapped[ScoreBreakdown | None] = relationship(

@@ -48,12 +48,15 @@ class MainOrchestrator:
         analysis_id: str,
         input_type: str,
         content: str,
+        mode: str | None = None,
+        model_name: str = "gemini-2.5-flash",
     ) -> None:
+        execution_mode = mode or settings.ANALYSIS_MODE
         logger.info(
             "Orchestrator started  ▸  analysis_id=%s  input_type=%s  mode=%s",
             analysis_id,
             input_type,
-            settings.ANALYSIS_MODE,
+            execution_mode,
         )
 
         async with async_session_maker() as session:
@@ -71,7 +74,7 @@ class MainOrchestrator:
                     if scraped_text:
                         scraped_content = scraped_text
                 
-                data_agent = DataAgent()
+                data_agent = DataAgent(model_name=model_name)
                 company_brief = await data_agent.run({
                     "raw_input": content,
                     "scraped_content": scraped_content
@@ -82,7 +85,7 @@ class MainOrchestrator:
                 
                 await repo.update_report_field(analysis_id, "company_brief", company_brief)
 
-                if settings.ANALYSIS_MODE == "optimized":
+                if execution_mode == "optimized":
                     # ── OPTIMIZED MODE: 3 Calls Total ──────────────────────────
                     
                     # Phase 2: Comprehensive Analysis (1 Call)
@@ -95,7 +98,7 @@ class MainOrchestrator:
                         [f"- {r['title']}: {r['snippet']} ({r.get('link', '')})" for r in search_results_data]
                     )
 
-                    comprehensive_agent = ComprehensiveAnalysisAgent()
+                    comprehensive_agent = ComprehensiveAnalysisAgent(model_name=model_name)
                     comprehensive_analysis = await comprehensive_agent.run({
                         "company_brief": str(company_brief),
                         "search_results": search_results
@@ -129,8 +132,8 @@ class MainOrchestrator:
                     await repo.update_status(analysis_id, "synthesis")
                     logger.info("[Phase 3-5] Final Synthesis & Scoring (optimized) for %s", analysis_id)
                     
-                    final_agent = FinalSynthesisAndScoringAgent()
-                    final_result = await final_agent.run({
+                    synthesis_agent = FinalSynthesisAndScoringAgent(model_name=model_name)
+                    final_result = await synthesis_agent.run({
                         "company_brief": str(company_brief),
                         "comprehensive_analysis": str(comprehensive_analysis)
                     })
@@ -169,11 +172,11 @@ class MainOrchestrator:
                         [f"- {r['title']}: {r['snippet']} ({r.get('link', '')})" for r in search_results_data]
                     )
 
-                    market_agent = MarketAgent()
-                    competitor_agent = CompetitorAgent()
-                    skeptic_agent = SkepticAgent()
-                    assumption_agent = AssumptionAgent()
-                    execution_agent = ExecutionAgent()
+                    market_agent = MarketAgent(model_name=model_name)
+                    competitor_agent = CompetitorAgent(model_name=model_name)
+                    skeptic_agent = SkepticAgent(model_name=model_name)
+                    assumption_agent = AssumptionAgent(model_name=model_name)
+                    execution_agent = ExecutionAgent(model_name=model_name)
 
                     market_task = market_agent.run({
                         "company_brief": str(company_brief),
@@ -236,7 +239,7 @@ class MainOrchestrator:
                     await repo.update_status(analysis_id, "contradictions")
                     logger.info("[Phase 3] Cross-validation for %s", analysis_id)
                     
-                    contradiction_agent = ContradictionAgent()
+                    contradiction_agent = ContradictionAgent(model_name=model_name)
                     contradictions = await contradiction_agent.run({
                         "company_brief": str(company_brief),
                         "market_analysis": str(market_analysis),
@@ -251,7 +254,7 @@ class MainOrchestrator:
                     await repo.update_status(analysis_id, "synthesis")
                     logger.info("[Phase 4] Synthesis for %s", analysis_id)
                     
-                    synthesizer = SynthesizerAgent()
+                    synthesizer = SynthesizerAgent(model_name=model_name)
                     synthesized_memo = await synthesizer.run({
                         "company_brief": str(company_brief),
                         "market_analysis": str(market_analysis),
@@ -267,7 +270,7 @@ class MainOrchestrator:
                     await repo.update_status(analysis_id, "scoring")
                     logger.info("[Phase 5] Scoring for %s", analysis_id)
                     
-                    scoring_engine = ScoringEngine()
+                    scoring_engine = ScoringEngine(model_name=model_name)
                     scoring_result = await scoring_engine.run({
                         "synthesized_memo": synthesized_memo
                     })

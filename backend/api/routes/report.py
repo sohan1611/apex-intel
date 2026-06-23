@@ -42,6 +42,9 @@ from backend.schemas.report_schema import (
     ScoreBreakdownSchema,
 )
 from backend.repository.report_repository import ReportRepository
+from backend.core.security import get_current_user
+from backend.core.feature_gates import can_view_score_breakdown, can_view_assumptions
+from backend.db.models import User
 
 # ── Logger setup ─────────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
@@ -66,6 +69,7 @@ router = APIRouter(tags=["Reports"])
 async def get_report(
     report_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
     """
     Retrieve a single analysis report by its ID.
@@ -93,8 +97,8 @@ async def get_report(
         report_repo = ReportRepository(db)
         report = await report_repo.get_report_by_id(str(report_id))
 
-        # ── 404 if the report doesn't exist ──────────────────────────
-        if report is None:
+        # ── 404 if the report doesn't exist or isn't owned by user ───
+        if report is None or str(report.user_id) != str(current_user.id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Report with id '{report_id}' not found.",
@@ -114,6 +118,15 @@ async def get_report(
         # sub-schemas. Each field is nullable because a phase could
         # have failed / returned no data.
         full_report = _build_full_report(report)
+        
+        # ── Feature Gating (Strip premium data based on tier) ────────
+        tier = current_user.subscription.tier if current_user.subscription else "FREE"
+        if not can_view_score_breakdown(tier):
+            full_report.score = None
+        if not can_view_assumptions(tier):
+            full_report.assumptions = []
+            full_report.contradictions = []
+
         return full_report.model_dump(mode="json")
 
     except HTTPException:
@@ -155,6 +168,7 @@ async def list_reports(
         description="Maximum number of records to return (1–100).",
     ),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ReportListResponse:
     """
     Retrieve a paginated list of all reports.
@@ -174,9 +188,9 @@ async def list_reports(
     try:
         report_repo = ReportRepository(db)
 
-        # Fetch paginated results and total count
-        reports = await report_repo.list_reports(skip=skip, limit=limit)
-        total = await report_repo.count_reports()
+        # Fetch paginated results and total count, filtered by user
+        reports = await report_repo.list_reports(skip=skip, limit=limit, user_id=str(current_user.id))
+        total = await report_repo.count_reports(user_id=str(current_user.id))
 
         # ── Transform each ORM row into a lightweight list item ──────
         items: list[ReportListItem] = []

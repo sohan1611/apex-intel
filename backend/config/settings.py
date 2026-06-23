@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     APP_NAME: str = "Apex Intel"
     DEBUG: bool = False  # Flip to True locally for verbose logs
 
+    # ── Authentication ─────────────────────────────────────────────────────
+    JWT_SECRET_KEY: str = "your-super-secret-jwt-key-for-development-only"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    GOOGLE_CLIENT_ID: str = "placeholder-client-id.apps.googleusercontent.com"
+
     ANALYSIS_MODE: str = "optimized"  # "optimized" (3 calls) or "full" (9 calls)
 
     # ── Database ─────────────────────────────────────────────────────────
@@ -64,7 +70,8 @@ class Settings(BaseSettings):
     # ── LLM Configuration ───────────────────────────────────────────────
     LLM_PROVIDER: str = "gemini"  # e.g. "gemini", "openai" (future)
     GEMINI_API_KEY: str = ""      # REQUIRED if provider is gemini
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    FREE_MODEL: str = "gemini-1.5-flash"
+    PREMIUM_MODEL: str = "gemini-2.5-flash"
     GEMINI_TEMPERATURE: float = 0.2
     GEMINI_MAX_TOKENS: int = 8192
     LLM_MAX_CONCURRENT_REQUESTS: int = 2  # Limits concurrent API calls (set to 1 for free tier)
@@ -77,8 +84,12 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
 
     # ── Agent Behaviour ──────────────────────────────────────────────────
-    AGENT_TIMEOUT_SECONDS: int = 60  # Max seconds an agent may run
-    AGENT_MAX_RETRIES: int = 2       # Retry count on transient failures
+    AGENT_TIMEOUT_SECONDS: int = 60
+    AGENT_MAX_RETRIES: int = 2
+
+    # ── Auth Configuration ──────────────────────────────────────────────────
+    JWT_SECRET: str = ""
+    GOOGLE_CLIENT_ID: str = ""
 
     # ── CORS ─────────────────────────────────────────────────────────────
     # Which origins are allowed to call our API.  In production, replace

@@ -58,11 +58,11 @@ class BaseAgent(ABC):
     # Global semaphore to limit concurrent requests across all agent instances
     _semaphore: asyncio.Semaphore | None = None
 
-    def __init__(self) -> None:
+    def __init__(self, model_name: str = "gemini-2.5-flash") -> None:
         """Initialise the agent with an OpenAI async client."""
         if settings.LLM_PROVIDER == "gemini":
             self._client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            self._model = settings.GEMINI_MODEL
+            self._model = model_name
         else:
             raise NotImplementedError(f"LLM Provider {settings.LLM_PROVIDER} is not currently supported.")
 
@@ -155,6 +155,18 @@ class BaseAgent(ABC):
                             response_mime_type="application/json",
                         ),
                     )
+                    
+                    if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                        p_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0)
+                        c_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0)
+                        self.prompt_tokens += p_tokens
+                        self.completion_tokens += c_tokens
+                        
+                        logger.info(
+                            "TELEMETRY: agent=%s model=%s prompt_tokens=%d completion_tokens=%d",
+                            self.agent_name, self._model, p_tokens, c_tokens
+                        )
+
                     return response.text or ""
                 except Exception as e:
                     logger.error("[%s] Gemini API Error: %s", self.agent_name, str(e))

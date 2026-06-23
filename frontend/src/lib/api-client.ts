@@ -13,14 +13,26 @@ class ApiError extends Error {
   }
 }
 
+import { getSession } from 'next-auth/react';
+
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
+  
+  const session = await getSession();
+  const token = (session as any)?.accessToken;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -60,5 +72,19 @@ export const apiClient = {
   getReports: async (): Promise<ReportListItem[]> => {
     const res = await fetchApi<{ reports: ReportListItem[]; total: number }>('/api/v1/reports');
     return res.reports ?? [];
+  },
+
+  upgradeSubscription: async (tier: string): Promise<{ message: string; new_tier: string }> => {
+    return fetchApi<{ message: string; new_tier: string }>('/api/v1/billing/upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
+    });
+  },
+
+  purchaseCredits: async (amount: number): Promise<{ message: string; purchased_credits: number }> => {
+    return fetchApi<{ message: string; purchased_credits: number }>('/api/v1/billing/credits', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
   },
 };

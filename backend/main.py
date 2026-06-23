@@ -109,12 +109,34 @@ except ImportError:
     pass
 
 try:
+    from backend.api.routes.auth import router as auth_router  # noqa: E402
+
+    app.include_router(
+        auth_router,
+        prefix="/api/v1/auth",
+        tags=["Authentication"],
+    )
+except ImportError:
+    pass
+
+try:
     from backend.api.routes.report import router as report_router  # noqa: E402
 
     app.include_router(
         report_router,
         prefix="/api/v1",
         tags=["Reports"],
+    )
+except ImportError:
+    pass
+
+try:
+    from backend.api.routes.billing import router as billing_router  # noqa: E402
+
+    app.include_router(
+        billing_router,
+        prefix="/api/v1/billing",
+        tags=["Billing"],
     )
 except ImportError:
     pass
