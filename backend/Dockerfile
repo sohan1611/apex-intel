@@ -35,4 +35,4 @@ ENV PORT=8000
 EXPOSE 8000
 
 # No ENTRYPOINT script, run directly
-CMD echo "Starting Uvicorn..." && uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} || { echo "Uvicorn crashed with exit code $?"; sleep 60; exit 1; }
+CMD echo "Starting Uvicorn test..." && uvicorn backend.main_test:app --host 0.0.0.0 --port ${PORT:-8000} || { echo "Uvicorn crashed with exit code $?"; sleep 60; exit 1; }
