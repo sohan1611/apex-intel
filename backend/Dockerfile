@@ -22,7 +22,7 @@ RUN pip install --no-cache /wheels/*
 COPY . /app/backend
 
 COPY entrypoint.sh /app/entrypoint.sh
-RUN tr -d '\r' < /app/entrypoint.sh > /app/entrypoint.tmp && mv /app/entrypoint.tmp /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
@@ -30,12 +30,8 @@ USER appuser
 
 ENV PYTHONPATH=/app
 ENV PORT=8000
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-
-
-ENTRYPOINT []
-CMD ["python", "-m", "http.server", "8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
