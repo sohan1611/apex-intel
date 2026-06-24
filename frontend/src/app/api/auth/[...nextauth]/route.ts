@@ -2,6 +2,8 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+export const dynamic = "force-dynamic";
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
