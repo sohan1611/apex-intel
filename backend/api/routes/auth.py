@@ -147,7 +147,8 @@ async def google_login(request: GoogleLoginRequest, session: AsyncSession = Depe
                 "tier": user.subscription.tier,
                 "analyses_used": user.usage_tracking.analyses_used,
                 "monthly_reset_date": user.usage_tracking.monthly_reset_date.isoformat(),
-                "purchased_credits": user.analysis_credits.purchased_credits
+                "purchased_credits": user.analysis_credits.purchased_credits,
+                "is_admin": user.is_admin
             }
         )
 
@@ -227,7 +228,8 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
                 "tier": user.subscription.tier,
                 "analyses_used": user.usage_tracking.analyses_used,
                 "monthly_reset_date": user.usage_tracking.monthly_reset_date.isoformat(),
-                "purchased_credits": user.analysis_credits.purchased_credits
+                "purchased_credits": user.analysis_credits.purchased_credits,
+                "is_admin": user.is_admin
             }
         )
     except HTTPException:
@@ -273,7 +275,8 @@ async def login(request: LoginRequest, session: AsyncSession = Depends(get_db)):
                 "tier": user.subscription.tier,
                 "analyses_used": user.usage_tracking.analyses_used,
                 "monthly_reset_date": user.usage_tracking.monthly_reset_date.isoformat(),
-                "purchased_credits": user.analysis_credits.purchased_credits
+                "purchased_credits": user.analysis_credits.purchased_credits,
+                "is_admin": user.is_admin
             }
         )
     except HTTPException:
@@ -281,3 +284,33 @@ async def login(request: LoginRequest, session: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error in login: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+from backend.core.security import get_current_user
+
+@router.get("/me")
+async def get_me(session: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Returns the current user profile, useful for refreshing session state."""
+    stmt = select(User).options(
+        selectinload(User.subscription),
+        selectinload(User.usage_tracking),
+        selectinload(User.analysis_credits)
+    ).where(User.id == current_user.id)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    return {
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "name": user.name,
+            "avatar": user.avatar,
+            "tier": user.subscription.tier,
+            "analyses_used": user.usage_tracking.analyses_used,
+            "monthly_reset_date": user.usage_tracking.monthly_reset_date.isoformat(),
+            "purchased_credits": user.analysis_credits.purchased_credits,
+            "is_admin": user.is_admin
+        }
+    }

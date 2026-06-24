@@ -2,48 +2,50 @@ from fastapi import HTTPException, status
 from backend.core.enums import SubscriptionTier
 from backend.db.models import User
 
+from backend.config.settings import settings
+
 # Monthly limits
 TIER_LIMITS = {
-    SubscriptionTier.FREE.value: 2,
-    SubscriptionTier.PRO_LITE.value: 5,
-    SubscriptionTier.PRO.value: 10,
+    SubscriptionTier.FREE.value: settings.FREE_LIMIT,
+    SubscriptionTier.PRO_LITE.value: settings.PRO_LITE_LIMIT,
+    SubscriptionTier.PRO.value: settings.PRO_LIMIT,
 }
 
-def can_use_nine_agent_pipeline(tier: str, using_credit: bool = False) -> bool:
+def can_use_nine_agent_pipeline(user: User, using_credit: bool = False) -> bool:
     """PRO users or users paying with a credit get the full 9-agent pipeline."""
-    if using_credit:
+    if user.is_admin or using_credit:
         return True
-    return tier == SubscriptionTier.PRO.value
+    return user.subscription.tier == SubscriptionTier.PRO.value
 
-def can_use_premium_model(tier: str, using_credit: bool = False) -> bool:
+def can_use_premium_model(user: User, using_credit: bool = False) -> bool:
     """PRO_LITE, PRO, or credit users get the PREMIUM_MODEL."""
-    if using_credit:
+    if user.is_admin or using_credit:
         return True
-    return tier in [SubscriptionTier.PRO_LITE.value, SubscriptionTier.PRO.value]
+    return user.subscription.tier in [SubscriptionTier.PRO_LITE.value, SubscriptionTier.PRO.value]
 
-def can_view_score_breakdown(tier: str, using_credit: bool = False) -> bool:
+def can_view_score_breakdown(user: User, using_credit: bool = False) -> bool:
     """PRO and credit users get the detailed score breakdown."""
-    if using_credit:
+    if user.is_admin or using_credit:
         return True
-    return tier == SubscriptionTier.PRO.value
+    return user.subscription.tier == SubscriptionTier.PRO.value
 
-def can_view_assumptions(tier: str, using_credit: bool = False) -> bool:
+def can_view_assumptions(user: User, using_credit: bool = False) -> bool:
     """PRO LITE, PRO, and credit users get the assumptions & contradictions sections."""
-    if using_credit:
+    if user.is_admin or using_credit:
         return True
-    return tier in [SubscriptionTier.PRO_LITE.value, SubscriptionTier.PRO.value]
+    return user.subscription.tier in [SubscriptionTier.PRO_LITE.value, SubscriptionTier.PRO.value]
 
-def can_generate_investor_memo(tier: str, using_credit: bool = False) -> bool:
+def can_generate_investor_memo(user: User, using_credit: bool = False) -> bool:
     """PRO and credit users get the investor memo."""
-    if using_credit:
+    if user.is_admin or using_credit:
         return True
-    return tier == SubscriptionTier.PRO.value
+    return user.subscription.tier == SubscriptionTier.PRO.value
 
-def can_use_premium_diligence(tier: str, using_credit: bool = False) -> bool:
+def can_use_premium_diligence(user: User, using_credit: bool = False) -> bool:
     """PRO and credit users get premium diligence mode."""
-    if using_credit:
+    if user.is_admin or using_credit:
         return True
-    return tier == SubscriptionTier.PRO.value
+    return user.subscription.tier == SubscriptionTier.PRO.value
 
 def check_usage_limit(user: User) -> bool:
     """
@@ -54,10 +56,23 @@ def check_usage_limit(user: User) -> bool:
     if not user.subscription or not user.usage_tracking:
         raise HTTPException(status_code=403, detail="No active subscription or usage tracking found.")
         
+    from datetime import datetime, timezone
+    
+    # Check for monthly reset
+    now_utc = datetime.now(timezone.utc)
+    if user.usage_tracking.monthly_reset_date <= now_utc:
+        # Reset is due. We return False to indicate it's a regular quota use.
+        # The actual database update of the reset date and usage count will
+        # happen in `analyze.py` during the transaction.
+        return False
+        
     tier = user.subscription.tier
     used = user.usage_tracking.analyses_used
     limit = TIER_LIMITS.get(tier, 0)
     
+    if user.is_admin:
+        return False # Admins never consume credits
+        
     # 1. Check monthly subscription limit
     if used < limit:
         return False # Not using credit

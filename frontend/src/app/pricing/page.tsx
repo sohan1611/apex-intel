@@ -30,7 +30,7 @@ const PLANS = [
   {
     tier: 'PAY_PER_ANALYSIS',
     name: 'Pay-Per-Analysis',
-    price: '₹10',
+    price: '₹29',
     interval: '/ report',
     description: 'Full premium analysis without a monthly commitment.',
     features: [
@@ -86,9 +86,18 @@ export default function PricingPage() {
   const { data: session, status, update } = useSession();
   const [upgradingTo, setUpgradingTo] = useState<string | null>(null);
 
-  const userTier = (session as any)?.user?.subscription_tier || 'FREE';
+  const userTier = (session as any)?.user?.tier || 'FREE';
   const analysesUsed = (session as any)?.user?.analyses_used || 0;
   const purchasedCredits = (session as any)?.user?.purchased_credits || 0;
+  const resetDateString = (session as any)?.user?.monthly_reset_date;
+  
+  const formattedResetDate = resetDateString 
+    ? new Date(resetDateString).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+    : 'Unknown';
   
   const getLimits = (tier: string) => {
     if (tier === 'PRO') return 10;
@@ -150,7 +159,7 @@ export default function PricingPage() {
                 {analysesUsed} / {currentLimit} analyses used
               </span>
             </div>
-            <div className="w-full bg-bg-tertiary rounded-full h-2.5 overflow-hidden mb-4">
+            <div className="w-full bg-bg-tertiary rounded-full h-2.5 overflow-hidden mb-2">
               <div 
                 className={cn(
                   "h-2.5 rounded-full transition-all duration-500",
@@ -159,6 +168,11 @@ export default function PricingPage() {
                 style={{ width: `${Math.min(100, (analysesUsed / currentLimit) * 100)}%` }}
               ></div>
             </div>
+            {userTier !== 'PAY_PER_ANALYSIS' && (
+              <div className="text-xs text-text-tertiary mb-4 text-right">
+                Resets on {formattedResetDate}
+              </div>
+            )}
             {purchasedCredits > 0 && (
               <div className="flex items-center gap-2 text-sm text-accent-primary bg-accent-primary/10 px-3 py-2 rounded-lg border border-accent-primary/20">
                 <Zap className="w-4 h-4" />

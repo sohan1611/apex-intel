@@ -43,7 +43,18 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     GOOGLE_CLIENT_ID: str = "placeholder-client-id.apps.googleusercontent.com"
 
-    ANALYSIS_MODE: str = "optimized"  # "optimized" (3 calls) or "full" (9 calls)
+    # ── Monetization & Pricing Configuration ──────────────────────────────
+    FREE_LIMIT: int = 2
+    PRO_LITE_LIMIT: int = 5
+    PRO_LIMIT: int = 10
+    
+    FREE_PRICE: int = 0
+    PRO_LITE_PRICE: int = 45
+    PRO_PRICE: int = 56
+    PAY_PER_ANALYSIS_PRICE: int = 29
+
+    ANALYSIS_MODE_OPTIMIZED: str = "optimized"
+    ANALYSIS_MODE_FULL: str = "full"
 
     # ── Database ─────────────────────────────────────────────────────────
     # The connection string uses `asyncpg` as the async driver for PostgreSQL.

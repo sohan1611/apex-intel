@@ -47,7 +47,24 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, trigger }) {
+      if (trigger === "update" && token.backendAccessToken) {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+          const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
+            headers: {
+              "Authorization": `Bearer ${token.backendAccessToken}`
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            token.backendUser = data.user;
+          }
+        } catch (error) {
+          console.error("Failed to update user session:", error);
+        }
+      }
+
       // Credentials login
       if (user && (user as any).access_token) {
         token.backendAccessToken = (user as any).access_token;

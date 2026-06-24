@@ -43,8 +43,9 @@ from backend.repository.report_repository import ReportRepository
 # The main orchestrator that runs the 5-phase agent pipeline
 from backend.core.orchestrator.main_orchestrator import MainOrchestrator
 from backend.core.security import get_current_user
-from backend.core.feature_gates import check_usage_limit, can_use_nine_agent_pipeline
-from backend.db.models import User
+from backend.core.feature_gates import check_usage_limit, can_use_nine_agent_pipeline, can_use_premium_model
+from backend.db.models import User, CreditUsageHistory
+from backend.config.settings import settings
 
 # ── Logger setup ─────────────────────────────────────────────────────
 logger = logging.getLogger(__name__)
@@ -94,27 +95,49 @@ async def create_analysis(
         If the database write fails or an unexpected error occurs.
     """
     try:
-        # ── Step 0: Check usage limit ────────────────────────────────
-        using_credit = check_usage_limit(current_user)
-        mode = "full" if can_use_nine_agent_pipeline(current_user.subscription.tier, using_credit) else "optimized"
-        model_name = settings.PREMIUM_MODEL if can_use_premium_model(current_user.subscription.tier, using_credit) else settings.FREE_MODEL
+        # ── Step 0: Transactional lock for Usage & Credit ────────────────
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+        from datetime import datetime, timezone, timedelta
+        
+        stmt = select(User).options(
+            selectinload(User.subscription),
+            selectinload(User.usage_tracking),
+            selectinload(User.analysis_credits)
+        ).where(User.id == current_user.id).with_for_update()
+        
+        result = await db.execute(stmt)
+        locked_user = result.scalar_one()
+        
+        # Handle monthly reset
+        now_utc = datetime.now(timezone.utc)
+        if locked_user.usage_tracking and locked_user.usage_tracking.monthly_reset_date <= now_utc:
+            locked_user.usage_tracking.analyses_used = 0
+            # Advance by 30 days
+            locked_user.usage_tracking.monthly_reset_date = now_utc + timedelta(days=30)
+            db.add(locked_user.usage_tracking)
+            
+        using_credit = check_usage_limit(locked_user)
+        mode = settings.ANALYSIS_MODE_FULL if can_use_nine_agent_pipeline(locked_user, using_credit) else settings.ANALYSIS_MODE_OPTIMIZED
+        model_name = settings.PREMIUM_MODEL if can_use_premium_model(locked_user, using_credit) else settings.FREE_MODEL
 
         # ── Step 1: Create a repository instance for DB operations ───
         report_repo = ReportRepository(db)
         
         # ── Step 1.5: Increment usage quota ──────────────────────────
         if using_credit:
-            current_user.analysis_credits.purchased_credits -= 1
-            db.add(current_user.analysis_credits)
+            locked_user.analysis_credits.purchased_credits -= 1
+            db.add(locked_user.analysis_credits)
             history = CreditUsageHistory(
-                user_id=current_user.id,
+                user_id=locked_user.id,
                 amount=-1,
                 transaction_type="USAGE"
             )
             db.add(history)
         else:
-            current_user.usage_tracking.analyses_used += 1
-            db.add(current_user.usage_tracking)
+            if not locked_user.is_admin:
+                locked_user.usage_tracking.analyses_used += 1
+                db.add(locked_user.usage_tracking)
             
         await db.commit()
 

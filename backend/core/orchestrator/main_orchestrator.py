@@ -287,6 +287,37 @@ class MainOrchestrator:
                             analysis_id, scoring_result.get("error"),
                         )
 
+                # ── Cost Telemetry ───────────────────────────────────
+                from backend.db.models import CostTelemetry, Report, User
+                from sqlalchemy import select
+                from sqlalchemy.orm import selectinload
+                
+                stmt = select(Report).where(Report.id == analysis_id)
+                result = await session.execute(stmt)
+                report = result.scalar_one_or_none()
+                
+                if report and report.user_id:
+                    user_stmt = select(User).options(selectinload(User.subscription)).where(User.id == report.user_id)
+                    user_res = await session.execute(user_stmt)
+                    user_obj = user_res.scalar_one_or_none()
+                    
+                    if user_obj and user_obj.subscription:
+                        multiplier = 3 if execution_mode == "optimized" else 9
+                        est_tokens = 4500 * multiplier
+                        est_cost = 0.015 * multiplier
+                        
+                        telemetry = CostTelemetry(
+                            user_id=user_obj.id,
+                            analysis_id=analysis_id,
+                            subscription_tier=user_obj.subscription.tier,
+                            model_used=model_name,
+                            pipeline_mode=execution_mode,
+                            estimated_token_usage=est_tokens,
+                            estimated_cost=est_cost
+                        )
+                        session.add(telemetry)
+                        await session.commit()
+
                 # ── Mark as completed ────────────────────────────────
                 await repo.update_status(analysis_id, "completed")
                 logger.info("Orchestrator completed  ▸  analysis_id=%s", analysis_id)

@@ -78,6 +78,7 @@ class User(Base):
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     avatar: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(default=False, nullable=False, server_default="false")
     
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False)
@@ -173,6 +174,25 @@ class CreditUsageHistory(Base):
     )
     amount: Mapped[int] = mapped_column(nullable=False) # Positive for purchase, negative for usage
     transaction_type: Mapped[str] = mapped_column(String(50), nullable=False) # PURCHASE, USAGE
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class CostTelemetry(Base):
+    """Logs the estimated tokens and cost of an AI analysis run."""
+    __tablename__ = "cost_telemetry"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    analysis_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    subscription_tier: Mapped[str] = mapped_column(String(50), nullable=False)
+    model_used: Mapped[str] = mapped_column(String(100), nullable=False)
+    pipeline_mode: Mapped[str] = mapped_column(String(50), nullable=False)
+    estimated_token_usage: Mapped[int] = mapped_column(nullable=False)
+    estimated_cost: Mapped[float] = mapped_column(Float, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 
