@@ -51,7 +51,7 @@ class MainOrchestrator:
         mode: str | None = None,
         model_name: str = "gemini-2.5-flash",
     ) -> None:
-        execution_mode = mode or settings.ANALYSIS_MODE
+        execution_mode = mode or settings.ANALYSIS_MODE_OPTIMIZED
         logger.info(
             "Orchestrator started  ▸  analysis_id=%s  input_type=%s  mode=%s",
             analysis_id,
