@@ -8,9 +8,11 @@ from backend.core.feature_gates import (
 )
 
 def create_mock_user(tier, credits=0, analyses_used=0, is_admin=False):
+    from datetime import datetime, timezone, timedelta
+    future_date = datetime.now(timezone.utc) + timedelta(days=30)
     user = User(is_admin=is_admin)
     user.subscription = Subscription(tier=tier.value)
-    user.usage_tracking = UsageTracking(analyses_used=analyses_used)
+    user.usage_tracking = UsageTracking(analyses_used=analyses_used, monthly_reset_date=future_date)
     user.analysis_credits = AnalysisCredit(purchased_credits=credits)
     return user
 
