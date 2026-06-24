@@ -36,3 +36,5 @@ tenacity>=8.2.0
 # ── Authentication ───────────────────────────────────────────────────────
 pyjwt>=2.8.0                       # JWT creation and verification
 google-auth>=2.29.0                # Verifying Google id_tokens
+passlib[bcrypt]>=1.7.4             # Password hashing
+bcrypt==3.2.2                      # Bcrypt backend for passlib (v3.x does not require Rust compiler)

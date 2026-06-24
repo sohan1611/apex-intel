@@ -22,6 +22,15 @@ router = APIRouter()
 class GoogleLoginRequest(BaseModel):
     id_token: str
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -148,3 +157,127 @@ async def google_login(request: GoogleLoginRequest, session: AsyncSession = Depe
     except Exception as e:
         logger.error(f"Error in google_login: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+
+@router.post("/register", response_model=TokenResponse)
+async def register(request: RegisterRequest, session: AsyncSession = Depends(get_db)):
+    """Registers a new user with email and password."""
+    try:
+        # Check if user exists
+        stmt = select(User).options(
+            selectinload(User.subscription),
+            selectinload(User.usage_tracking),
+            selectinload(User.analysis_credits)
+        ).where(User.email == request.email)
+        result = await session.execute(stmt)
+        if result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        from backend.core.security import get_password_hash
+        hashed_password = get_password_hash(request.password)
+
+        user = User(
+            email=request.email,
+            name=request.name,
+            hashed_password=hashed_password,
+        )
+        session.add(user)
+        await session.flush()
+        
+        # Create default FREE subscription
+        subscription = Subscription(
+            user_id=user.id,
+            tier=SubscriptionTier.FREE.value,
+            status=SubscriptionStatus.ACTIVE.value
+        )
+        session.add(subscription)
+
+        # Create default Usage Tracking
+        usage = UsageTracking(
+            user_id=user.id,
+            analyses_used=0,
+            monthly_reset_date=datetime.now(timezone.utc) + timedelta(days=30)
+        )
+        session.add(usage)
+
+        # Create default Analysis Credits wallet
+        credits = AnalysisCredit(
+            user_id=user.id,
+            purchased_credits=0
+        )
+        session.add(credits)
+
+        await session.commit()
+        await session.refresh(user)
+
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        from backend.core.security import create_access_token
+        access_token = create_access_token(
+            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier},
+            expires_delta=access_token_expires
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            user={
+                "id": str(user.id),
+                "email": user.email,
+                "name": user.name,
+                "avatar": user.avatar,
+                "tier": user.subscription.tier,
+                "analyses_used": user.usage_tracking.analyses_used,
+                "monthly_reset_date": user.usage_tracking.monthly_reset_date.isoformat(),
+                "purchased_credits": user.analysis_credits.purchased_credits
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in register: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@router.post("/login", response_model=TokenResponse)
+async def login(request: LoginRequest, session: AsyncSession = Depends(get_db)):
+    """Logs in an existing user with email and password."""
+    try:
+        stmt = select(User).options(
+            selectinload(User.subscription),
+            selectinload(User.usage_tracking),
+            selectinload(User.analysis_credits)
+        ).where(User.email == request.email)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+
+        if not user or not user.hashed_password:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        from backend.core.security import verify_password
+        if not verify_password(request.password, user.hashed_password):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        from backend.core.security import create_access_token
+        access_token = create_access_token(
+            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier},
+            expires_delta=access_token_expires
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            user={
+                "id": str(user.id),
+                "email": user.email,
+                "name": user.name,
+                "avatar": user.avatar,
+                "tier": user.subscription.tier,
+                "analyses_used": user.usage_tracking.analyses_used,
+                "monthly_reset_date": user.usage_tracking.monthly_reset_date.isoformat(),
+                "purchased_credits": user.analysis_credits.purchased_credits
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in login: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
