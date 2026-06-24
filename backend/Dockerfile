@@ -22,7 +22,7 @@ RUN pip install --no-cache /wheels/*
 COPY . /app/backend
 
 COPY entrypoint.sh /app/entrypoint.sh
-RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+RUN tr -d '\r' < /app/entrypoint.sh > /app/entrypoint.tmp && mv /app/entrypoint.tmp /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
