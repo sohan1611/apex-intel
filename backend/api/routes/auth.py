@@ -40,11 +40,12 @@ class TokenResponse(BaseModel):
 async def google_login(request: GoogleLoginRequest, session: AsyncSession = Depends(get_db)):
     """Verifies Google id_token and returns a backend JWT."""
     try:
-        # Verify the Google token
+        # Verify the Google token (skip audience check if not configured)
+        aud = settings.GOOGLE_CLIENT_ID if settings.GOOGLE_CLIENT_ID else None
         id_info = id_token.verify_oauth2_token(
             request.id_token, 
             requests.Request(), 
-            settings.GOOGLE_CLIENT_ID
+            audience=aud
         )
         
         google_id = id_info.get("sub")
