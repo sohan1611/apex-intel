@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { CheckCircle2, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
@@ -50,12 +51,22 @@ function deriveAgentStatuses(
 // Page Component
 
 export default function AnalysisDashboardPage() {
+  const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
   const { data, isLoading, isError, error } = useAnalysisStatus(id);
 
   const isComplete = data?.status === 'completed';
   const isFailed = data?.status === 'failed';
+
+  useEffect(() => {
+    if (isComplete) {
+      const timer = setTimeout(() => {
+        router.push(`/report/${id}`);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, id, router]);
 
   // Map backend progress (0-100) to 5 distinct phases
   const overallProgress = data?.progress || 0;

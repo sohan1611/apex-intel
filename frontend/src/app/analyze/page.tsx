@@ -16,6 +16,7 @@ import {
   Lightbulb,
   FileText,
   Globe,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
@@ -233,14 +234,27 @@ export default function AnalyzePage() {
                   : 'bg-accent-primary hover:bg-accent-hover text-white hover:shadow-lg hover:shadow-accent-primary/20'
               )}
             >
-              {analyzeMutation.isPending ? 'Starting...' : 'Run Analysis'}
-              <ArrowRight className="h-4 w-4" />
+              {analyzeMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Starting Analysis...
+                </>
+              ) : (
+                <>
+                  Run Analysis
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
 
             <p className="text-xs text-text-tertiary mt-2 text-center">
               {analyzeMutation.isError && (
                 <span className="text-signal-weak block mb-1">
-                  Error: {analyzeMutation.error.message}
+                  {analyzeMutation.error?.message?.includes('429')
+                    ? 'AI capacity is temporarily busy. Please try again in a few minutes.'
+                    : analyzeMutation.error?.message?.includes('403')
+                    ? 'Your current plan does not allow this action.'
+                    : 'Something went wrong while generating your report. Please try again.'}
                 </span>
               )}
               Estimated analysis time: ~2-3 minutes

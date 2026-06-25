@@ -102,6 +102,12 @@ class Settings(BaseSettings):
     JWT_SECRET: str = ""
     GOOGLE_CLIENT_ID: str = ""
 
+    # ── Rate Limiting ────────────────────────────────────────────────────────
+    RATE_LIMIT_FREE: str = "5/minute"
+    RATE_LIMIT_PRO_LITE: str = "15/minute"
+    RATE_LIMIT_PRO: str = "30/minute"
+    RATE_LIMIT_ADMIN: str = "100/minute"
+
     # ── CORS ─────────────────────────────────────────────────────────────
     # Which origins are allowed to call our API.  In production, replace
     # this with the actual frontend domain(s).

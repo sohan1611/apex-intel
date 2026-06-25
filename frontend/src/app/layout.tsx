@@ -14,8 +14,28 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Apex Intel — Investment Analysis Platform",
-  description: "AI-powered investment analysis and due diligence reports for venture capital and private equity professionals.",
+  title: {
+    template: '%s | Apex Intel',
+    default: 'Apex Intel — Investment Intelligence Platform',
+  },
+  description: 'AI-powered investment intelligence and due diligence reports for venture capital and private equity professionals.',
+  keywords: ['Investment Intelligence', 'Due Diligence', 'Startup Evaluation', 'Venture Capital', 'AI Analysis', 'Market Intelligence'],
+  openGraph: {
+    title: 'Apex Intel — Investment Intelligence Platform',
+    description: 'AI-powered investment intelligence and due diligence reports for venture capital and private equity professionals.',
+    url: 'https://apexintel.app',
+    siteName: 'Apex Intel',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Apex Intel',
+    description: 'AI-powered investment intelligence',
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

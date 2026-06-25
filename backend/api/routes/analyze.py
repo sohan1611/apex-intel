@@ -21,10 +21,15 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
+from backend.main import limiter
+from backend.core.ratelimit import get_user_rate_limit
 
 # ── Internal imports ─────────────────────────────────────────────────
 # Database session dependency
@@ -69,8 +74,10 @@ router = APIRouter(tags=["Analysis"])
         "for the autonomous AI analysis pipeline."
     ),
 )
-async def create_analysis(
-    request: AnalyzeRequest,
+@limiter.limit(get_user_rate_limit)
+async def start_analysis(
+    request: Request,
+    payload: AnalyzeRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -145,8 +152,8 @@ async def create_analysis(
         # The repository returns the full ORM model (or a dict) with
         # the auto-generated UUID primary key.
         report = await report_repo.create_report(
-            input_type=request.input_type,
-            input_content=request.content,
+            input_type=payload.input_type,
+            input_content=payload.content,
             user_id=str(current_user.id),
         )
 
@@ -156,8 +163,8 @@ async def create_analysis(
         logger.info(
             "Analysis queued  ▸  id=%s  input_type=%s  content_length=%d",
             analysis_id,
-            request.input_type,
-            len(request.content),
+            payload.input_type,
+            len(payload.content),
         )
 
         # ── Step 3: Launch the orchestrator in the background ────────

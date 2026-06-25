@@ -134,7 +134,7 @@ async def google_login(request: GoogleLoginRequest, session: AsyncSession = Depe
         # Generate backend access token
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier},
+            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier, "is_admin": user.is_admin},
             expires_delta=access_token_expires
         )
         
@@ -215,7 +215,7 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         from backend.core.security import create_access_token
         access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier},
+            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier, "is_admin": user.is_admin},
             expires_delta=access_token_expires
         )
 
@@ -262,7 +262,7 @@ async def login(request: LoginRequest, session: AsyncSession = Depends(get_db)):
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         from backend.core.security import create_access_token
         access_token = create_access_token(
-            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier},
+            data={"sub": str(user.id), "email": user.email, "tier": user.subscription.tier, "is_admin": user.is_admin},
             expires_delta=access_token_expires
         )
 

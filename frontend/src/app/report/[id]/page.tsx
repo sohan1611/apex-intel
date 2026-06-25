@@ -15,10 +15,11 @@ import ExecutionSection from '@/features/report/ExecutionSection';
 import ContradictionsSection from '@/features/report/ContradictionsSection';
 import ScoreBreakdown from '@/features/report/ScoreBreakdown';
 import { SignalBadge } from '@/components/ui/SignalBadge';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { useReport } from '@/hooks/use-api';
 import { useParams } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { formatPercentage } from '@/lib/utils';
+import { Loader2, AlertCircle, Clock, ShieldCheck } from 'lucide-react';
+import { formatPercentage, formatDate } from '@/lib/utils';
 
 // -- Section jump targets --
 
@@ -132,21 +133,21 @@ export default function ReportPage() {
               </p>
               <div className="flex flex-wrap gap-6 mt-4 pt-4 border-t border-border-default">
                 <div className="flex flex-col">
-                  <span className="text-xs text-text-muted">Score</span>
-                  <span className="text-lg font-semibold text-text-primary">
+                  <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Score</span>
+                  <span className="text-3xl font-bold text-text-primary mt-1">
                     {totalScore}
-                    <span className="text-sm text-text-muted font-normal">/100</span>
+                    <span className="text-lg text-text-muted font-normal">/100</span>
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs text-text-muted">Signal</span>
-                  <div className="mt-1">
+                  <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Signal</span>
+                  <div className="mt-2">
                     <SignalBadge signal={signal} />
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs text-text-muted">Confidence</span>
-                  <span className="text-lg font-semibold text-text-primary">
+                  <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Confidence</span>
+                  <span className="text-3xl font-bold text-text-primary mt-1">
                     {formatPercentage(confidence)}
                   </span>
                 </div>
@@ -177,8 +178,20 @@ export default function ReportPage() {
             </span>
           </div>
 
+          {/* Trust Indicators */}
+          <div className="flex items-center justify-between border-b border-border-default pb-4 mb-8">
+            <div className="flex items-center gap-2 text-xs text-text-tertiary">
+              <Clock className="h-4 w-4" />
+              Generated on {report.created_at ? formatDate(report.created_at) : new Date().toLocaleDateString()}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-signal-strong/80 font-medium">
+              <ShieldCheck className="h-4 w-4" />
+              AI-Verified Analysis
+            </div>
+          </div>
+
           {/* Overview */}
-          <section id="overview" className="mb-12">
+          <section id="overview" className="mb-12 scroll-mt-20">
             <ReportHeader report={report} />
             <div className="mt-6">
               <InvestmentSignalCard
@@ -191,75 +204,59 @@ export default function ReportPage() {
 
           {/* Red Flags */}
           {report.red_flags && report.red_flags.length > 0 && (
-            <section id="red-flags" className="mb-12">
-              <SectionTitle title="Red Flags" />
+            <CollapsibleSection id="red-flags" title="Red Flags" className="mb-8" badge={
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-signal-weak/10 text-xs font-bold text-signal-weak">
+                {report.red_flags.length}
+              </span>
+            }>
               <RedFlagsPanel flags={report.red_flags} />
-            </section>
+            </CollapsibleSection>
           )}
 
           {/* Company Brief */}
-          <section id="company-brief" className="mb-12">
-            <SectionTitle title="Company Brief" />
+          <CollapsibleSection id="company-brief" title="Company Brief" className="mb-8">
             <CompanyBriefSection brief={report.company_brief} />
-          </section>
+          </CollapsibleSection>
 
           {/* Market Analysis */}
-          <section id="market-analysis" className="mb-12">
-            <SectionTitle title="Market Analysis" />
+          <CollapsibleSection id="market-analysis" title="Market Analysis" className="mb-8">
             <MarketAnalysisSection market={report.market_analysis} />
-          </section>
+          </CollapsibleSection>
 
           {/* Competitors */}
-          <section id="competitors" className="mb-12">
-            <SectionTitle title="Competitors" />
+          <CollapsibleSection id="competitors" title="Competitors" className="mb-8">
             <CompetitorMatrix competitors={report.competitors} />
-          </section>
+          </CollapsibleSection>
 
           {/* Risk Analysis */}
-          <section id="risk-analysis" className="mb-12">
-            <SectionTitle title="Risk Analysis" />
+          <CollapsibleSection id="risk-analysis" title="Risk Analysis" className="mb-8">
             <RiskAnalysisSection risks={report.skeptic_analysis ?? []} />
-          </section>
+          </CollapsibleSection>
 
           {/* Assumptions */}
-          <section id="assumptions" className="mb-12">
-            <SectionTitle title="Assumptions" />
+          <CollapsibleSection id="assumptions" title="Assumptions" className="mb-8">
             <AssumptionTable assumptions={report.assumptions ?? []} />
-          </section>
+          </CollapsibleSection>
 
           {/* Execution */}
-          <section id="execution" className="mb-12">
-            <SectionTitle title="Execution Feasibility" />
+          <CollapsibleSection id="execution" title="Execution Feasibility" className="mb-8">
             <ExecutionSection execution={report.execution_feasibility} />
-          </section>
+          </CollapsibleSection>
 
           {/* Contradictions */}
-          <section id="contradictions" className="mb-12">
-            <SectionTitle title="Contradictions" />
+          <CollapsibleSection id="contradictions" title="Contradictions" className="mb-8">
             <ContradictionsSection contradictions={report.contradictions ?? []} />
-          </section>
+          </CollapsibleSection>
 
           {/* Score Breakdown */}
-          <section id="score-breakdown" className="mb-12">
-            <SectionTitle title="Score Breakdown" />
+          <CollapsibleSection id="score-breakdown" title="Score Breakdown" className="mb-8">
             <ScoreBreakdown score={report.score} />
-          </section>
+          </CollapsibleSection>
 
           {/* Bottom spacing */}
           <div className="h-24" />
         </div>
       </main>
     </div>
-  );
-}
-
-/**
- * Reusable section title with divider line.
- */
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <h2 className="text-lg font-semibold text-text-primary mb-4 pb-2 border-b border-border-default">
-      {title}
-    </h2>
   );
 }

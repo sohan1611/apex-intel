@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Plus,
   ArrowUpDown,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
@@ -18,6 +19,7 @@ import { Footer } from '@/components/layout/Footer';
 import { KPIBar } from '@/components/ui/KPIBar';
 import { SignalBadge } from '@/components/ui/SignalBadge';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useReports } from '@/hooks/use-api';
 import type { ReportListItem } from '@/types/report';
 import ReportSelectionBar from '@/features/reports/ReportSelectionBar';
@@ -297,11 +299,18 @@ export default function ReportsPage() {
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-sm text-text-muted"
-                  >
-                    No reports found matching your filters.
+                  <td colSpan={6} className="p-8">
+                    <EmptyState
+                      icon={FileText}
+                      title="No reports found"
+                      description="You haven't generated any reports matching these filters yet."
+                      action={
+                        <Link href="/analyze" className="mt-4 inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-4 py-2 rounded-md text-sm font-medium hover:bg-text-secondary transition-colors">
+                          <Plus className="h-4 w-4" />
+                          New Analysis
+                        </Link>
+                      }
+                    />
                   </td>
                 </tr>
               ) : (

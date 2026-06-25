@@ -15,8 +15,9 @@ const NAV_LINKS = [
   { href: '/analyze', label: 'Analyze' },
   { href: '/reports', label: 'Reports' },
   { href: '/reports/compare', label: 'Compare' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '/about', label: 'About' },
-] as const;
+];
 
 /**
  * Primary navigation bar for Apex Intel.
@@ -54,7 +55,9 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.concat(
+            (session?.user as any)?.is_admin ? [{ href: '/admin', label: 'Admin' }] : []
+          ).map((link) => {
             const active = isActive(link.href);
             return (
               <Link
@@ -107,11 +110,11 @@ export default function Navbar() {
           <Link
             href="/analyze"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium
-                       bg-accent-primary hover:bg-accent-hover text-white
-                       transition-colors shadow-sm shadow-accent-primary/25"
+                       bg-text-primary hover:bg-text-secondary text-bg-primary
+                       transition-colors"
           >
             <Plus className="h-4 w-4" />
-            New Analysis
+            New Evaluation
           </Link>
         </div>
 
@@ -125,15 +128,16 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       <div
         className={cn(
           'md:hidden absolute top-14 left-0 right-0 bg-bg-secondary border-b border-border-default overflow-hidden transition-all duration-200',
-          mobileMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'
+          mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         )}
       >
         <div className="px-4 py-3 space-y-1">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.concat(
+            (session?.user as any)?.is_admin ? [{ href: '/admin', label: 'Admin' }] : []
+          ).map((link) => {
             const active = isActive(link.href);
             return (
               <Link
@@ -174,11 +178,11 @@ export default function Navbar() {
             <Link
               href="/analyze"
               className="mt-2 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium
-                         bg-accent-primary hover:bg-accent-hover text-white transition-colors"
+                         bg-text-primary hover:bg-text-secondary text-bg-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               <Plus className="h-4 w-4" />
-              New Analysis
+              New Evaluation
             </Link>
           </div>
         </div>

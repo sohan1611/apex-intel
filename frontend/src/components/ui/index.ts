@@ -1,4 +1,5 @@
 export { StatusBadge } from './StatusBadge';
+export { EmptyState } from './EmptyState';
 export { MetricCard } from './MetricCard';
 export { ProgressBar } from './ProgressBar';
 export { SignalBadge } from './SignalBadge';

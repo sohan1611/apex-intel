@@ -8,12 +8,6 @@
 
 Apex Intel is an autonomous, multi-agent due-diligence platform designed for venture capital firms, angel investors, consultants, and startup analysts. The platform takes a startup's website URL or a text description and runs it through a 5-phase execution pipeline of specialized AI agents. It performs automatic market sizing, web research, competitor analysis, risk auditing, execution feasibility modeling, contradiction detection, and outputs a complete, professional, and structured investment memo.
 
-<!--
-  PLACEHOLDER: Apex Intel Platform Demo GIF
-  [TODO: Insert a 10-15 second GIF showing the user pasting a URL and watching the pipeline run in real-time]
-  Format: ![Apex Intel Platform Demo](/public/demo.gif)
--->
-
 ---
 
 ## Key Features
@@ -198,24 +192,6 @@ Open your browser and navigate to `http://localhost:3000` to interact with the p
 ---
 
 ## Screenshots
-
-<!--
-  PLACEHOLDER: Landing Page Screenshot
-  [TODO: Insert screenshot of the minimalist input landing page]
-  Format: ![Landing Page](/public/screenshots/landing_page.png)
--->
-
-<!--
-  PLACEHOLDER: Live Tracker Dashboard Screenshot
-  [TODO: Insert screenshot of the live agent analysis pipeline visualizer]
-  Format: ![Live Dashboard](/public/screenshots/live_dashboard.png)
--->
-
-<!--
-  PLACEHOLDER: Investment Memo Report View Screenshot
-  [TODO: Insert screenshot of the structured memo viewer with scores and competitor matrix]
-  Format: ![Investment Memo Viewer](/public/screenshots/memo_viewer.png)
--->
 
 ---
 

@@ -21,18 +21,18 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 const FEATURES = [
   {
     icon: Layers,
-    title: '9 Specialized Agents',
-    desc: 'Market research, competitor analysis, risk assessment, and more -- running in parallel.',
+    title: 'Market Intelligence',
+    desc: 'Automated market sizing, competitor mapping, and positioning analysis -- executed in parallel.',
   },
   {
     icon: FileText,
-    title: 'Structured Memos, Not Chat',
-    desc: 'Professional investment memos with scored insights, source attribution, and confidence metrics.',
+    title: 'Structured Investment Memos',
+    desc: 'Professional due-diligence memos with scored insights, source attribution, and confidence metrics.',
   },
   {
     icon: ShieldCheck,
-    title: 'Source-Verified Insights',
-    desc: 'Every claim attributed as search-based or inferred. No hallucination. No generic summaries.',
+    title: 'Source-Verified Claims',
+    desc: 'Every insight is attributed to a verifiable source or explicitly marked as an inference.',
   },
 ] as const;
 
@@ -42,22 +42,22 @@ const WORKFLOW_STEPS = [
   {
     icon: FileInput,
     title: 'Input',
-    desc: 'Submit a startup idea or company URL for analysis',
+    desc: 'Submit a startup URL, pitch deck, or concept text',
   },
   {
     icon: Bot,
-    title: '9 AI Agents',
-    desc: 'Specialized agents analyze market, competition, risks & more',
+    title: 'Evaluation Engine',
+    desc: 'Multi-agent system processes market, execution, and competitive vectors',
   },
   {
     icon: SearchCheck,
     title: 'Cross-Validation',
-    desc: 'Contradictions detected, assumptions challenged, sources verified',
+    desc: 'Identifies contradictions, challenges assumptions, and verifies sources',
   },
   {
     icon: FileBarChart,
     title: 'Investment Memo',
-    desc: 'Scored report with actionable insights and red flags',
+    desc: 'Comprehensive report with risk scoring and go/no-go signals',
   },
 ] as const;
 
@@ -125,46 +125,40 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* ---- 1. Hero Section ---- */}
-        <section className="pt-16 pb-10 px-6">
-          <div className="mx-auto max-w-3xl text-center">
+        <section className="pt-24 pb-12 px-6">
+          <div className="mx-auto max-w-4xl text-center">
             {/* Decorative badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border-default bg-bg-secondary px-4 py-1.5 text-xs text-text-tertiary mb-8 animate-fade-in">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-primary animate-pulse-dot" />
-              AI-Powered Due Diligence
+            <div className="inline-flex items-center gap-2 rounded-full border border-border-default bg-bg-secondary px-3 py-1 text-xs text-text-secondary mb-8">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-primary" />
+              Investment Intelligence Platform
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-semibold text-text-primary tracking-tight leading-tight animate-fade-in">
-              Due Diligence,{' '}
-              <span className="bg-gradient-to-r from-accent-primary to-blue-300 bg-clip-text text-transparent">
-                Automated.
+            <h1 className="text-4xl md:text-6xl font-semibold text-text-primary tracking-tight leading-[1.1]">
+              Startup Evaluation,{' '}
+              <span className="text-accent-primary">
+                Systematized.
               </span>
             </h1>
 
-            <p
-              className="text-lg text-text-secondary max-w-xl mx-auto mt-4 leading-relaxed animate-fade-in"
-              style={{ animationDelay: '100ms' }}
-            >
-              AI-powered investment analysis that surfaces what matters. Market
-              sizing, risk profiles, and competitive landscapes -- in minutes.
+            <p className="text-lg md:text-xl text-text-secondary max-w-2xl mx-auto mt-6 leading-relaxed">
+              Execute comprehensive due diligence in minutes. We aggregate market signals,
+              evaluate competitive moats, and systematically assess execution risks.
             </p>
 
             {/* Dual CTAs */}
-            <div
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 animate-fade-in"
-              style={{ animationDelay: '200ms' }}
-            >
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
               <Link
                 href="/analyze"
-                className="inline-flex items-center gap-2 bg-accent-primary hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-primary/20"
+                className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-6 py-3 rounded-md font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto"
               >
-                Start Analysis
-                <span className="text-white/70">&rarr;</span>
+                Start Evaluation
+                <span className="text-bg-tertiary">&rarr;</span>
               </Link>
               <Link
                 href="/report/mock-report-id"
-                className="inline-flex items-center gap-2 border border-border-default hover:border-border-hover text-text-secondary hover:text-text-primary px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                className="inline-flex items-center justify-center gap-2 border border-border-default hover:border-border-hover bg-bg-secondary text-text-primary px-6 py-3 rounded-md font-medium transition-colors w-full sm:w-auto"
               >
-                View Sample Report
+                View Sample Memo
               </Link>
             </div>
           </div>
@@ -413,27 +407,27 @@ export default function HomePage() {
         {/* ---- 8. CTA Banner ---- */}
         <section className="px-6 mt-20 mb-0">
           <div className="mx-auto max-w-5xl">
-            <div className="rounded-xl border border-accent-primary/30 bg-gradient-to-r from-accent-primary/5 to-transparent p-8 md:p-12 text-center">
+            <div className="rounded-xl border border-border-default bg-bg-secondary p-8 md:p-12 text-center">
               <h2 className="text-2xl font-semibold text-text-primary mb-3">
                 Ready to analyze your next investment?
               </h2>
               <p className="text-sm text-text-secondary max-w-lg mx-auto mb-8">
-                Get a comprehensive due diligence report in minutes, not weeks.
+                Get a comprehensive due diligence memo in minutes, not weeks.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   href="/analyze"
-                  className="inline-flex items-center gap-2 bg-accent-primary hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-primary/20"
+                  className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-6 py-3 rounded-md font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto"
                 >
-                  Start Analysis
-                  <span className="text-white/70">&rarr;</span>
+                  Start Evaluation
+                  <span className="text-bg-tertiary">&rarr;</span>
                 </Link>
                 <Link
                   href="/report/mock-report-id"
-                  className="inline-flex items-center gap-2 border border-border-default hover:border-border-hover text-text-secondary hover:text-text-primary px-6 py-3 rounded-lg font-medium transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 border border-border-default hover:border-border-hover bg-bg-secondary text-text-primary px-6 py-3 rounded-md font-medium transition-colors w-full sm:w-auto"
                 >
-                  View Sample Report
+                  View Sample Memo
                 </Link>
               </div>
             </div>

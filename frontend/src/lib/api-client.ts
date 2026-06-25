@@ -87,4 +87,12 @@ export const apiClient = {
       body: JSON.stringify({ amount }),
     });
   },
+
+  getAdminStats: async (): Promise<any> => {
+    return fetchApi<any>('/api/v1/admin/stats');
+  },
+
+  getAdminUsers: async (): Promise<any[]> => {
+    return fetchApi<any[]>('/api/v1/admin/users');
+  },
 };

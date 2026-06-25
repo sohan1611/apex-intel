@@ -38,15 +38,13 @@ export function ExportDropdown({ reportId, reportTitle, className }: ExportDropd
 
   const handleExportPDF = () => {
     // Mock PDF download — will connect to real API
-    const filename = `${reportTitle.replace(/\s+/g, '_').toLowerCase()}_report.pdf`;
-    console.log(`[ExportDropdown] Initiating PDF export: ${filename} (report: ${reportId})`);
+    // const filename = `${reportTitle.replace(/\s+/g, '_').toLowerCase()}_report.pdf`;
     setIsOpen(false);
   };
 
   const handleExportJSON = () => {
     // Mock JSON download — will connect to real API
-    const filename = `${reportTitle.replace(/\s+/g, '_').toLowerCase()}_report.json`;
-    console.log(`[ExportDropdown] Initiating JSON export: ${filename} (report: ${reportId})`);
+    // const filename = `${reportTitle.replace(/\s+/g, '_').toLowerCase()}_report.json`;
     setIsOpen(false);
   };
 

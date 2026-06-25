@@ -174,10 +174,16 @@ export default function PricingPage() {
               </div>
             )}
             {purchasedCredits > 0 && (
-              <div className="flex items-center gap-2 text-sm text-accent-primary bg-accent-primary/10 px-3 py-2 rounded-lg border border-accent-primary/20">
+              <div className="flex items-center gap-2 text-sm text-accent-primary bg-accent-primary/10 px-3 py-2 rounded-lg border border-accent-primary/20 mb-4">
                 <Zap className="w-4 h-4" />
                 <strong>{purchasedCredits}</strong> Pay-Per-Analysis credits available
               </div>
+            )}
+            {userTier === 'FREE' && (
+              <p className="text-xs text-text-tertiary bg-bg-tertiary p-3 rounded-lg border border-border-default">
+                <strong className="text-text-secondary">What happens when my quota is empty?</strong><br />
+                You will not be automatically charged. You will simply be prompted to purchase Pay-Per-Analysis credits or upgrade to a Pro plan if you wish to run more analyses.
+              </p>
             )}
           </div>
         )}
@@ -262,6 +268,29 @@ export default function PricingPage() {
               </div>
             );
           })}
+        </div>
+
+        {/* FAQ Section */}
+        <div className="max-w-3xl mx-auto mt-24">
+          <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
+              <h3 className="font-semibold text-lg mb-2">How do monthly limits work?</h3>
+              <p className="text-text-secondary text-sm">Your analysis quota resets on the 1st of every month. Unused monthly analyses do not roll over to the next month.</p>
+            </div>
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
+              <h3 className="font-semibold text-lg mb-2">What happens if I run out of my monthly limit?</h3>
+              <p className="text-text-secondary text-sm">You won't be charged automatically. You can either upgrade to a higher tier or purchase Pay-Per-Analysis credits which never expire and can be used on top of your plan.</p>
+            </div>
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
+              <h3 className="font-semibold text-lg mb-2">Can I cancel anytime?</h3>
+              <p className="text-text-secondary text-sm">Yes, you can cancel your subscription at any time from your Account Settings. You'll retain access to your plan until the end of your billing cycle.</p>
+            </div>
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
+              <h3 className="font-semibold text-lg mb-2">What's the difference between the Optimized and Full 9-Agent pipeline?</h3>
+              <p className="text-text-secondary text-sm">The Optimized pipeline uses 3 specialized agents to quickly analyze market opportunity and product-market fit. The Full 9-Agent pipeline invokes our complete suite of expert agents, including deep financial auditing, contradiction detection, and rigorous risk assessment.</p>
+            </div>
+          </div>
         </div>
 
       </main>

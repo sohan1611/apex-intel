@@ -17,6 +17,7 @@ alembic>=1.14.0                    # Database migration tool
 pydantic>=2.0.0
 pydantic-settings>=2.0.0           # BaseSettings + .env loading
 python-dotenv>=1.0.0               # Fallback .env loading
+slowapi>=0.1.9                     # Rate limiting
 
 # ── HTTP Client & Scraping ──────────────────────────────────────────────
 httpx>=0.27.0                      # Async HTTP client (replaces requests)
