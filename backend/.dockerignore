@@ -1,0 +1,13 @@
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.env.*
+.pytest_cache
+*.db
+.git
+tests
+validate_*.py
+fix_*.py
+e2e_audit.py
