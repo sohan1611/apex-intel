@@ -27,8 +27,12 @@ COPY . /app/backend
 RUN printf '#!/bin/sh\nif [ "$1" = "run" ]; then shift; fi\nexec "$@"\n' > /usr/local/bin/uv \
     && chmod +x /usr/local/bin/uv
 
-# Symlink alembic.ini into /app so "alembic upgrade head" finds it from WORKDIR
-RUN ln -sf /app/backend/alembic.ini /app/alembic.ini
+# Copy alembic.ini to /app and fix the migrations path.
+# The original uses %(here)s/migrations which resolves relative to the ini file.
+# Since we copy to /app/ but migrations live at /app/backend/migrations,
+# we rewrite the path.
+RUN cp /app/backend/alembic.ini /app/alembic.ini \
+    && sed -i 's|script_location = %(here)s/migrations|script_location = /app/backend/migrations|' /app/alembic.ini
 
 # Non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
