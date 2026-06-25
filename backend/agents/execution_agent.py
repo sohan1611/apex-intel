@@ -45,8 +45,8 @@ class ExecutionAgent(BaseAgent):
     def system_prompt(self) -> str:
         return EXECUTION_SYSTEM_PROMPT
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, model_name: str = "gemini-2.5-flash") -> None:
+        super().__init__(model_name=model_name)
 
     def fallback_default(self) -> dict[str, Any]:
         return {
