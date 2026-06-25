@@ -115,13 +115,16 @@ async def run_scenario(name: str, user_id: str):
         print(f"[{name}] [FAILED] Telemetry not found after 120 seconds", flush=True)
 
 async def cleanup_users():
-    async with async_session_maker() as db:
-        emails = [f"test_scenario_{x}@example.com" for x in ['a','b','c','d','e']]
-        stmt = select(User).where(User.email.in_(emails))
-        result = await db.execute(stmt)
-        for user in result.scalars():
-            await db.delete(user)
-        await db.commit()
+    try:
+        async with async_session_maker() as db:
+            emails = [f"test_scenario_{x}@example.com" for x in ['a','b','c','d','e']]
+            stmt = select(User).where(User.email.in_(emails))
+            result = await db.execute(stmt)
+            for user in result.scalars():
+                await db.delete(user)
+            await db.commit()
+    except Exception as e:
+        print(f"Initial cleanup failed: {e}", flush=True)
 
 async def main():
     print("Starting e2e validation against Railway...", flush=True)
@@ -134,15 +137,18 @@ async def main():
         await run_scenario(name, user_id)
         
     print("\nCleaning up test users...", flush=True)
-    async with async_session_maker() as db:
-        for _, user_id in users:
-            stmt = select(User).where(User.id == user_id)
-            result = await db.execute(stmt)
-            user = result.scalar_one_or_none()
-            if user:
-                await db.delete(user)
-        await db.commit()
-    print("Cleanup done!", flush=True)
+    try:
+        async with async_session_maker() as db:
+            for _, user_id in users:
+                stmt = select(User).where(User.id == user_id)
+                result = await db.execute(stmt)
+                user = result.scalar_one_or_none()
+                if user:
+                    await db.delete(user)
+            await db.commit()
+        print("Cleanup done!", flush=True)
+    except Exception as e:
+        print(f"Cleanup failed (likely deadlock from background tasks): {e}", flush=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
