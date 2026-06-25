@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # ── LLM Configuration ───────────────────────────────────────────────
     LLM_PROVIDER: str = "gemini"  # e.g. "gemini", "openai" (future)
     GEMINI_API_KEY: str = ""      # REQUIRED if provider is gemini
-    FREE_MODEL: str = "gemini-1.5-flash"
+    FREE_MODEL: str = "gemini-2.5-flash"
     PREMIUM_MODEL: str = "gemini-2.5-flash"
     GEMINI_TEMPERATURE: float = 0.2
     GEMINI_MAX_TOKENS: int = 8192

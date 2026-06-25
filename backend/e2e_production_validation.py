@@ -108,11 +108,11 @@ async def run_scenario(name: str, user_id: str):
                 telemetry = result.scalars().first()
                 
                 if telemetry:
-                    print(f"[{name}] ✅ Telemetry Found -> Multiplier: {telemetry.cost_multiplier if hasattr(telemetry, 'cost_multiplier') else telemetry.pipeline_mode}, Model: {telemetry.model_used}", flush=True)
+                    print(f"[{name}] Telemetry Found -> Multiplier: {telemetry.cost_multiplier if hasattr(telemetry, 'cost_multiplier') else telemetry.pipeline_mode}, Model: {telemetry.model_used}", flush=True)
                     return
             print(f"[{name}] Polling {i+1}/24...", flush=True)
             
-        print(f"[{name}] ❌ Telemetry not found after 120 seconds", flush=True)
+        print(f"[{name}] [FAILED] Telemetry not found after 120 seconds", flush=True)
 
 async def cleanup_users():
     async with async_session_maker() as db:
