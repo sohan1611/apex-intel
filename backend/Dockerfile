@@ -22,9 +22,10 @@ RUN pip install --no-cache /wheels/*
 # Copy the backend code (build context is /backend via rootDirectory)
 COPY . /app/backend
 
-# Create a 'uv' shim so Railway's startCommand ("uv run ...") works
-# without actually needing uv installed. "uv run <cmd>" becomes just "<cmd>".
-RUN printf '#!/bin/sh\nif [ "$1" = "run" ]; then shift; fi\nif [ "$1" = "alembic" ]; then echo "UV SHIM: Skipping alembic to avoid locks"; exit 0; fi\necho "UV SHIM EXECUTING: $@"\nexec "$@"\n' > /usr/local/bin/uv \
+# Hijack Railway's startCommand by making 'uv' immediately run our entrypoint.sh.
+# Since Railway runs "uv run alembic ... && uv run uvicorn ...", the first "uv" call
+# will execute entrypoint.sh (which starts uvicorn and blocks). The "&&" part is never reached.
+RUN printf '#!/bin/sh\necho "Hijacking Railway startCommand..."\nexec /app/entrypoint.sh\n' > /usr/local/bin/uv \
     && chmod +x /usr/local/bin/uv
 
 # Copy alembic.ini to /app and fix the migrations path.
