@@ -66,6 +66,9 @@ class BaseAgent(ABC):
         else:
             raise NotImplementedError(f"LLM Provider {settings.LLM_PROVIDER} is not currently supported.")
 
+        self.prompt_tokens = 0
+        self.completion_tokens = 0
+
         if BaseAgent._semaphore is None:
             # Create a shared semaphore for all instances to respect the global rate limit
             BaseAgent._semaphore = asyncio.Semaphore(settings.LLM_MAX_CONCURRENT_REQUESTS)
