@@ -1,3 +1,5 @@
+'use client';
+
 import { MetricCard } from '@/components/ui/MetricCard';
 import { SignalBadge } from '@/components/ui/SignalBadge';
 import { formatPercentage, formatDate } from '@/lib/utils';

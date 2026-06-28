@@ -152,7 +152,7 @@ export default function AnalysisDashboardPage() {
                     Analysis Complete
                   </p>
                   <p className="text-xs text-text-secondary mt-0.5">
-                    Your investment memo is ready. Click below to view the full report.
+                    Your investment report is ready. Click below to view the full report.
                   </p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function AnalysisDashboardPage() {
                 href={`/report/${id}`}
                 className="flex items-center gap-2 rounded-lg bg-accent-primary hover:bg-accent-hover text-white px-5 py-2.5 text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-primary/20 flex-shrink-0"
               >
-                View Investment Memo
+                View Investment Report
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

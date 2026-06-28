@@ -37,7 +37,7 @@ export default function AboutPage() {
           <div className="rounded-lg border border-border-default bg-bg-secondary p-8 text-center max-w-4xl mx-auto">
             <h2 className="text-2xl font-semibold text-text-primary mb-4">Our Mission</h2>
             <p className="text-base text-text-secondary leading-relaxed">
-              Apex Intel exists to democratize investment due diligence. We believe every investor, from solo angels to institutional funds, deserves access to the same caliber of analysis that top-tier firms produce internally. Our platform combines 9 specialized AI agents with rigorous source verification to deliver investment memos that are transparent, defensible, and actionable.
+              Apex Intel exists to democratize investment due diligence. We believe every investor, from solo angels to institutional funds, deserves access to the same caliber of analysis that top-tier firms produce internally. Our platform combines 9 specialized AI agents with rigorous source verification to deliver investment reports that are transparent, defensible, and actionable.
             </p>
           </div>
         </section>
@@ -60,7 +60,7 @@ export default function AboutPage() {
               { icon: FlaskConical, title: 'Assumption Validator', desc: 'Surfaces hidden assumptions and rates impact if false' },
               { icon: Cog, title: 'Execution Feasibility Agent', desc: 'Assesses operational difficulty and capital requirements' },
               { icon: GitCompareArrows, title: 'Contradiction Detector', desc: 'Cross-references all outputs for conflicting data' },
-              { icon: FileBarChart, title: 'Synthesizer', desc: 'Combines all findings into a unified investment memo' },
+              { icon: FileBarChart, title: 'Synthesizer', desc: 'Combines all findings into a unified investment report' },
               { icon: Target, title: 'Scoring Engine', desc: 'Computes weighted investment score with signal classification' }
             ].map((agent, i) => {
               const Icon = agent.icon;
@@ -89,7 +89,7 @@ export default function AboutPage() {
                 { title: 'Data Ingestion', desc: 'Raw input is processed, URLs are scraped, and company data is structured' },
                 { title: 'Parallel Analysis', desc: 'Five agents run simultaneously: market, competitor, skeptic, assumption, execution' },
                 { title: 'Cross-Validation', desc: 'Contradiction detector compares all outputs for inconsistencies' },
-                { title: 'Synthesis', desc: 'All findings are merged into a comprehensive investment memo' },
+                { title: 'Synthesis', desc: 'All findings are merged into a comprehensive investment report' },
                 { title: 'Scoring', desc: 'Weighted scoring engine generates final investment signal' }
               ].map((phase, i, arr) => (
                 <div key={i} className="flex items-start gap-4">

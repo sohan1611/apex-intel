@@ -214,7 +214,7 @@ function DesktopTable({ reports }: { reports: FullReport[] }) {
                   href={`/report/${r.id}`}
                   className="text-xs text-accent-primary hover:underline mt-0.5 inline-block"
                 >
-                  View Memo →
+                  View Report →
                 </Link>
               </th>
             ))}
@@ -307,7 +307,7 @@ function MobileCards({ reports }: { reports: FullReport[] }) {
               href={`/report/${r.id}`}
               className="text-xs text-accent-primary hover:underline whitespace-nowrap"
             >
-              View Memo →
+              View Report →
             </Link>
           </div>
 

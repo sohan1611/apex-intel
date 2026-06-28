@@ -66,7 +66,7 @@ const EXAMPLES: { type: 'text' | 'url'; label: string; content: string }[] = [
   },
 ];
 
-const EVALUATION_PILLS: { icon: React.ReactNode; label: string }[] = [
+const ANALYSIS_PILLS: { icon: React.ReactNode; label: string }[] = [
   { icon: <TrendingUp className="h-3.5 w-3.5" />, label: 'Market Sizing' },
   { icon: <Users className="h-3.5 w-3.5" />, label: 'Competition' },
   { icon: <AlertTriangle className="h-3.5 w-3.5" />, label: 'Risk & Red Flags' },
@@ -294,7 +294,7 @@ export default function AnalyzePage() {
               What Apex Intel Evaluates
             </h3>
             <div className="flex flex-wrap gap-2">
-              {EVALUATION_PILLS.map((pill) => (
+              {ANALYSIS_PILLS.map((pill) => (
                 <span
                   key={pill.label}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-secondary border border-border-default text-xs text-text-secondary"

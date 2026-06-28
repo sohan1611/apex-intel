@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'Apex Intel — Investment Intelligence Platform',
   },
   description: 'AI-powered investment intelligence and due diligence reports for venture capital and private equity professionals.',
-  keywords: ['Investment Intelligence', 'Due Diligence', 'Startup Evaluation', 'Venture Capital', 'AI Analysis', 'Market Intelligence'],
+  keywords: ['Investment Intelligence', 'Due Diligence', 'Startup Analysis', 'Venture Capital', 'AI Analysis', 'Market Intelligence'],
   openGraph: {
     title: 'Apex Intel — Investment Intelligence Platform',
     description: 'AI-powered investment intelligence and due diligence reports for venture capital and private equity professionals.',

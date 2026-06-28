@@ -26,8 +26,8 @@ const FEATURES = [
   },
   {
     icon: FileText,
-    title: 'Structured Investment Memos',
-    desc: 'Professional due-diligence memos with scored insights, source attribution, and confidence metrics.',
+    title: 'Structured Investment Reports',
+    desc: 'Professional due-diligence reports with scored insights, source attribution, and confidence metrics.',
   },
   {
     icon: ShieldCheck,
@@ -46,7 +46,7 @@ const WORKFLOW_STEPS = [
   },
   {
     icon: Bot,
-    title: 'Evaluation Engine',
+    title: 'Analysis Engine',
     desc: 'Multi-agent system processes market, execution, and competitive vectors',
   },
   {
@@ -56,7 +56,7 @@ const WORKFLOW_STEPS = [
   },
   {
     icon: FileBarChart,
-    title: 'Investment Memo',
+    title: 'Investment Report',
     desc: 'Comprehensive report with risk scoring and go/no-go signals',
   },
 ] as const;
@@ -134,7 +134,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-semibold text-text-primary tracking-tight leading-[1.1]">
-              Startup Evaluation,{' '}
+              Startup Analysis,{' '}
               <span className="text-accent-primary">
                 Systematized.
               </span>
@@ -151,14 +151,14 @@ export default function HomePage() {
                 href="/analyze"
                 className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-6 py-3 rounded-md font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto"
               >
-                Start Evaluation
+                Start Analysis
                 <span className="text-bg-tertiary">&rarr;</span>
               </Link>
               <Link
                 href="/report/mock-report-id"
                 className="inline-flex items-center justify-center gap-2 border border-border-default hover:border-border-hover bg-bg-secondary text-text-primary px-6 py-3 rounded-md font-medium transition-colors w-full sm:w-auto"
               >
-                View Sample Memo
+                View Sample Report
               </Link>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function HomePage() {
               Investment-Grade Output
             </h2>
             <p className="text-sm text-text-tertiary text-center mb-10">
-              See what an Apex Intel memo looks like
+              See what an Apex Intel report looks like
             </p>
 
             <div className="rounded-lg border border-border-default bg-bg-secondary p-6 md:p-8">
@@ -412,7 +412,7 @@ export default function HomePage() {
                 Ready to analyze your next investment?
               </h2>
               <p className="text-sm text-text-secondary max-w-lg mx-auto mb-8">
-                Get a comprehensive due diligence memo in minutes, not weeks.
+                Get a comprehensive due diligence report in minutes, not weeks.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -420,14 +420,14 @@ export default function HomePage() {
                   href="/analyze"
                   className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-6 py-3 rounded-md font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto"
                 >
-                  Start Evaluation
+                  Start Analysis
                   <span className="text-bg-tertiary">&rarr;</span>
                 </Link>
                 <Link
                   href="/report/mock-report-id"
                   className="inline-flex items-center justify-center gap-2 border border-border-default hover:border-border-hover bg-bg-secondary text-text-primary px-6 py-3 rounded-md font-medium transition-colors w-full sm:w-auto"
                 >
-                  View Sample Memo
+                  View Sample Report
                 </Link>
               </div>
             </div>

@@ -26,6 +26,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useReports } from '@/hooks/use-api';
 import { formatDate } from '@/lib/utils';
+import { getPlanConfig } from '@/lib/subscription';
 
 // -- Quick action items -------------------------------------------------------
 
@@ -99,16 +100,17 @@ export default function DashboardPage() {
   const backendUser = (session?.user as any) || {};
   const firstName = backendUser.name?.split(' ')[0] || 'Investor';
   const tier = backendUser.tier || 'FREE';
-  const limit = tier === 'PRO' ? 50 : tier === 'PRO_LITE' ? 15 : 2;
+  const userConfig = getPlanConfig(tier);
+  const limit = userConfig.monthlyLimit;
   const used = backendUser.analyses_used || 0;
   const credits = backendUser.purchased_credits || 0;
   const remaining = Math.max(0, limit - used) + credits;
   const resetDateString = backendUser.monthly_reset_date ? formatDate(backendUser.monthly_reset_date).split(',')[0] : 'Never';
-  const progressValue = Math.min(100, Math.round((used / limit) * 100));
+  const progressValue = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
 
-  const modelName = tier === 'FREE' ? 'Gemini 2.5 Flash Lite' : 'Gemini 2.5 Flash';
-  const pipelineType = tier === 'FREE' ? 'Optimized Pipeline' : 'Full 9-Agent Due Diligence';
-  const isPro = tier !== 'FREE';
+  const modelName = userConfig.aiModel;
+  const pipelineType = userConfig.pipelineType;
+  const isPro = tier === 'PRO' || tier === 'PRO_LITE';
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary">
@@ -123,7 +125,7 @@ export default function DashboardPage() {
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-text-secondary">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent-primary/10 text-accent-primary font-medium border border-accent-primary/20">
-              {tier} Plan
+              {userConfig.name} Plan
             </span>
             <span className="hidden sm:inline text-border-default">•</span>
             <span>{remaining} analyses remaining this month</span>
@@ -186,38 +188,70 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 3: Upgrade / Health */}
-          {isPro ? (
+          {/* Card 3: Upgrade / Subscription Management */}
+          {tier === 'PRO' ? (
             <div className="rounded-xl border border-accent-primary/20 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm">
               <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Star className="h-4 w-4 text-accent-primary" /> Pro Member
+                <Star className="h-4 w-4 text-accent-primary" /> Pro Subscription
               </h2>
-              <div className="flex-1 flex flex-col justify-center text-center">
-                <CheckCircle2 className="h-8 w-8 text-accent-primary mx-auto mb-3" />
-                <p className="text-base font-medium text-text-primary mb-1">You're using Apex Intel Pro.</p>
-                <p className="text-sm text-text-secondary">Thank you for supporting the platform and trusting our AI due diligence.</p>
+              <div className="space-y-4 flex-1">
+                <div className="flex justify-between items-center text-sm border-b border-border-subtle pb-3">
+                  <span className="text-text-secondary">Billing Status</span>
+                  <span className="inline-flex items-center gap-1 text-green-500 font-medium"><CheckCircle2 className="w-3.5 h-3.5" /> Active</span>
+                </div>
+                <div className="flex justify-between items-center text-sm border-b border-border-subtle pb-3">
+                  <span className="text-text-secondary">Monthly Allowance</span>
+                  <span className="font-medium text-text-primary">{limit} Analyses</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-text-secondary">Pay-Per-Analysis Credits</span>
+                  <span className="font-medium text-accent-primary">{credits} Available</span>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-col gap-2">
+                <Link href="/pricing" className="w-full text-center bg-accent-primary hover:bg-accent-hover text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                  Buy Additional Credits
+                </Link>
+                <button className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors">
+                  Manage Subscription
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="rounded-xl border border-accent-primary/30 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                <Zap className="h-24 w-24 text-accent-primary" />
-              </div>
-              <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-3 relative z-10">
-                Unlock Full Due Diligence
+          ) : tier === 'PRO_LITE' ? (
+            <div className="rounded-xl border border-accent-primary/20 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm">
+              <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-accent-primary" /> Pro Lite
               </h2>
-              <ul className="space-y-2 mb-4 text-sm text-text-secondary relative z-10 flex-1">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent-primary" /> Premium AI Models</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent-primary" /> Full 9-Agent Analysis</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent-primary" /> Faster Processing</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent-primary" /> More Monthly Analyses</li>
-              </ul>
-              <Link
-                href="/pricing"
-                className="w-full relative z-10 text-center bg-accent-primary hover:bg-accent-hover text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-              >
-                Upgrade Plan
+              <div className="flex-1 space-y-3">
+                <p className="text-sm text-text-secondary mb-2">Upgrade to Pro to unlock institutional capabilities:</p>
+                <ul className="space-y-2 text-sm text-text-tertiary">
+                  <li className="flex items-center gap-2 opacity-75"><Lock className="w-3.5 h-3.5" /> Contradiction Detection</li>
+                  <li className="flex items-center gap-2 opacity-75"><Lock className="w-3.5 h-3.5" /> Hidden Assumptions Validation</li>
+                  <li className="flex items-center gap-2 opacity-75"><Lock className="w-3.5 h-3.5" /> Full 9-Agent Pipeline</li>
+                </ul>
+              </div>
+              <Link href="/pricing" className="w-full mt-4 text-center bg-text-primary hover:bg-text-secondary text-bg-primary py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                Upgrade to Pro
               </Link>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border-default bg-bg-secondary p-6 flex flex-col shadow-sm">
+              <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-text-muted" /> Free Plan
+              </h2>
+              <div className="flex-1 flex flex-col justify-center mb-4">
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Upgrade your plan to unlock premium AI models, full 9-agent analysis, and institutional-grade due diligence.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Link href="/pricing" className="w-full text-center bg-accent-primary hover:bg-accent-hover text-white py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                  Upgrade to Pro
+                </Link>
+                <Link href="/pricing" className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors">
+                  Compare Plans
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -281,7 +315,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 rounded-xl border border-border-default bg-bg-secondary flex flex-col shadow-sm">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border-default">
               <h2 className="text-base font-semibold text-text-primary">
-                Recent Evaluations
+                Recent Analyses
               </h2>
               <Link
                 href="/reports"
@@ -297,7 +331,7 @@ export default function DashboardPage() {
                   <EmptyState 
                     icon={Activity}
                     title="No analyses yet"
-                    description="Generate your first startup investment memo in just a few minutes."
+                    description="Generate your first startup investment report in just a few minutes."
                     action={
                       <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
                         <Link href="/analyze" className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto">

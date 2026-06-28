@@ -114,7 +114,7 @@ export default function Navbar() {
                        transition-colors"
           >
             <Plus className="h-4 w-4" />
-            New Evaluation
+            New Analysis
           </Link>
         </div>
 
@@ -182,7 +182,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Plus className="h-4 w-4" />
-              New Evaluation
+              New Analysis
             </Link>
           </div>
         </div>

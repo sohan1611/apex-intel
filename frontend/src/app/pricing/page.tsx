@@ -8,79 +8,9 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { apiClient } from '@/lib/api-client';
 
-const PLANS = [
-  {
-    tier: 'FREE',
-    name: 'Free',
-    price: '₹0',
-    interval: '/ month',
-    description: 'Perfect for exploring the platform capabilities.',
-    features: [
-      '2 analyses per month',
-      'Optimized 3-agent pipeline',
-      'Basic company briefing',
-      'Market opportunity analysis',
-    ],
-    notIncluded: [
-      'Contradiction detection',
-      'Hidden assumptions validation',
-      'Premium score breakdown',
-    ],
-  },
-  {
-    tier: 'PAY_PER_ANALYSIS',
-    name: 'Pay-Per-Analysis',
-    price: '₹29',
-    interval: '/ report',
-    description: 'Full premium analysis without a monthly commitment.',
-    features: [
-      'Credits never expire',
-      'Full 9-agent pipeline',
-      'Contradiction detection engine',
-      'Hidden assumptions validation',
-      'Premium score breakdown',
-    ],
-    notIncluded: [
-      'Monthly quota reset',
-      'White-glove support',
-    ],
-  },
-  {
-    tier: 'PRO_LITE',
-    name: 'Pro Lite',
-    price: '₹45',
-    interval: '/ month',
-    description: 'For moderate volume users who need fast insights.',
-    features: [
-      '5 analyses per month',
-      'Premium AI Model Access',
-      'Standard investment memo',
-      'Priority email support',
-    ],
-    notIncluded: [
-      'Contradiction detection',
-      'Hidden assumptions validation',
-      'Premium score breakdown',
-    ],
-  },
-  {
-    tier: 'PRO',
-    name: 'Pro',
-    price: '₹56',
-    interval: '/ month',
-    popular: true,
-    description: 'Full-fidelity 9-agent analysis for institutional investors.',
-    features: [
-      '10 analyses per month',
-      'Full 9-agent pipeline',
-      'Contradiction detection engine',
-      'Hidden assumptions validation',
-      'Premium score breakdown',
-      'White-glove support',
-    ],
-    notIncluded: [],
-  },
-];
+import { SUBSCRIPTION_PLANS, getPlanConfig, getPlanRank } from '@/lib/subscription';
+
+const PLANS = Object.values(SUBSCRIPTION_PLANS);
 
 export default function PricingPage() {
   const { data: session, status, update } = useSession();
@@ -99,13 +29,8 @@ export default function PricingPage() {
       })
     : 'Unknown';
   
-  const getLimits = (tier: string) => {
-    if (tier === 'PRO') return 10;
-    if (tier === 'PRO_LITE') return 5;
-    return 2;
-  };
-
-  const currentLimit = getLimits(userTier);
+  const userConfig = getPlanConfig(userTier);
+  const currentLimit = userConfig.monthlyLimit;
 
   const handleUpgrade = async (tier: string) => {
     if (status !== 'authenticated') {
@@ -151,9 +76,9 @@ export default function PricingPage() {
         {status === 'authenticated' && (
           <div className="max-w-2xl mx-auto mb-16 bg-bg-secondary border border-border-default rounded-xl p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-2">Your Current Usage</h2>
-            <div className="flex justify-between items-end mb-2">
-              <span className="text-text-secondary text-sm">
-                Current Plan: <strong className="text-text-primary">{userTier}</strong>
+            <div className="flex justify-between items-center mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-primary/10 text-accent-primary text-sm font-semibold border border-accent-primary/20">
+                <Check className="h-4 w-4" /> Current Plan: {userConfig.name}
               </span>
               <span className="text-sm font-medium">
                 {analysesUsed} / {currentLimit} analyses used
@@ -192,7 +117,7 @@ export default function PricingPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {PLANS.map((plan) => {
             const isCurrentPlan = userTier === plan.tier;
-            const isDowngrade = getLimits(plan.tier) < getLimits(userTier);
+            const isDowngrade = getPlanRank(plan.tier) < getPlanRank(userTier);
             const isUpgradingThis = upgradingTo === plan.tier;
 
             return (
@@ -226,15 +151,15 @@ export default function PricingPage() {
                 <div className="mb-8 flex-1">
                   <ul className="space-y-4">
                     {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3 text-sm">
-                        <Check className="h-5 w-5 text-green-500 shrink-0" />
-                        <span className="text-text-primary">{feature}</span>
-                      </li>
-                    ))}
-                    {plan.notIncluded.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3 text-sm">
-                        <X className="h-5 w-5 text-text-tertiary shrink-0" />
-                        <span className="text-text-tertiary">{feature}</span>
+                      <li key={feature.name} className="flex items-start gap-3 text-sm">
+                        {feature.included ? (
+                          <Check className="h-5 w-5 text-green-500 shrink-0" />
+                        ) : (
+                          <X className="h-5 w-5 text-text-tertiary shrink-0" />
+                        )}
+                        <span className={feature.included ? 'text-text-primary' : 'text-text-tertiary'}>
+                          {feature.name}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -242,27 +167,27 @@ export default function PricingPage() {
 
                 <button
                   onClick={() => handleUpgrade(plan.tier)}
-                  disabled={isCurrentPlan || isDowngrade || upgradingTo !== null}
+                  disabled={isCurrentPlan || upgradingTo !== null}
                   className={cn(
-                    "w-full py-3 px-4 rounded-lg font-medium transition-colors flex justify-center items-center gap-2",
+                    "w-full py-3 px-4 rounded-lg font-medium transition-colors flex justify-center items-center gap-2 border",
                     isCurrentPlan 
-                      ? "bg-bg-tertiary text-text-secondary cursor-not-allowed"
-                      : isDowngrade
-                        ? "bg-bg-tertiary text-text-secondary cursor-not-allowed"
+                      ? "bg-bg-primary text-text-secondary border-border-default hover:bg-bg-tertiary"
+                      : plan.tier === 'PAY_PER_ANALYSIS'
+                        ? "bg-bg-secondary text-text-primary border-border-hover hover:border-text-primary hover:bg-bg-tertiary"
                         : plan.popular
-                          ? "bg-accent-primary hover:bg-accent-hover text-white shadow-sm"
-                          : "bg-text-primary hover:bg-text-secondary text-bg-primary"
+                          ? "bg-accent-primary border-accent-primary hover:bg-accent-hover text-white shadow-sm"
+                          : "bg-text-primary border-text-primary hover:bg-text-secondary text-bg-primary"
                   )}
                 >
                   {isUpgradingThis && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {plan.tier === 'PAY_PER_ANALYSIS'
-                    ? (status !== 'authenticated' ? 'Sign In to Buy' : 'Buy 1 Credit')
-                    : isCurrentPlan 
-                      ? 'Current Plan' 
-                      : isDowngrade 
-                        ? 'Included in Current' 
-                        : status !== 'authenticated' 
-                          ? 'Sign In to Select' 
+                  {isCurrentPlan 
+                    ? 'Manage Plan'
+                    : plan.tier === 'PAY_PER_ANALYSIS'
+                      ? (status !== 'authenticated' ? 'Sign In to Buy' : 'Buy 1 Credit')
+                      : isDowngrade
+                        ? 'Downgrade (Mock)'
+                        : status !== 'authenticated'
+                          ? 'Sign In to Select'
                           : 'Upgrade'}
                 </button>
               </div>
