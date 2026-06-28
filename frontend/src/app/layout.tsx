@@ -4,12 +4,12 @@ import "./globals.css";
 import { Providers } from "@/app/providers";
 
 const inter = Inter({
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
 const jetBrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 

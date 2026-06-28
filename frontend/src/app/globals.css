@@ -19,7 +19,7 @@
 
   /* ── Borders ──────────────────────────────── */
   --color-border-default: #27272A;
-  --color-border-subtle: #27272A;
+  --color-border-subtle: #1F1F22;
   --color-border-hover: #3F3F46;
 
   /* ── Accent ───────────────────────────────── */
@@ -39,8 +39,8 @@
   --color-status-failed: #EF4444;
 
   /* ── Typography ───────────────────────────── */
-  --font-sans: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), 'JetBrains Mono', monospace;
+  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
 
   /* ── Misc ─────────────────────────────────── */
   --color-background: var(--background);

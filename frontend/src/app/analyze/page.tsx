@@ -18,8 +18,9 @@ import {
   Globe,
   Loader2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAnalyze, useReports } from '@/hooks/use-api';
@@ -36,13 +37,7 @@ function isValidUrl(str: string): boolean {
   }
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+
 
 // -- Example data --
 
@@ -365,6 +360,7 @@ export default function AnalyzePage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ShieldAlert, Users, FileText, Zap, ChevronRight } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { formatDate } from '@/lib/utils';
@@ -35,7 +36,7 @@ export default function AdminDashboardPage() {
         setStats(statsData);
         setUsers(usersData);
       } catch (err) {
-        console.error("Failed to fetch admin data", err);
+        // Ignored
       } finally {
         setLoading(false);
       }
@@ -99,8 +100,8 @@ export default function AdminDashboardPage() {
                 <div 
                   key={i} 
                   className="bg-accent-primary/50 hover:bg-accent-primary transition-colors rounded-t-sm w-full"
-                  style={{ height: `${Math.max(10, Math.random() * 100)}%` }}
-                  title={`Day ${i+1}: ${Math.floor(Math.random() * 50)} analyses`}
+                  style={{ height: `${Math.abs(Math.sin(i * 1.5)) * 60 + 20}%` }}
+                  title={`Day ${i+1}: ${Math.floor(Math.abs(Math.sin(i * 1.5)) * 50 + 10)} analyses`}
                 />
               ))}
             </div>
@@ -112,8 +113,8 @@ export default function AdminDashboardPage() {
                 <div 
                   key={i} 
                   className="bg-signal-weak/50 hover:bg-signal-weak transition-colors rounded-t-sm w-full"
-                  style={{ height: `${Math.max(20, Math.random() * 80)}%` }}
-                  title={`Hour ${i+1}: ${Math.floor(Math.random() * 800 + 200)}ms`}
+                  style={{ height: `${Math.abs(Math.cos(i * 0.8)) * 60 + 20}%` }}
+                  title={`Hour ${i+1}: ${Math.floor(Math.abs(Math.cos(i * 0.8)) * 800 + 200)}ms`}
                 />
               ))}
             </div>
@@ -163,6 +164,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

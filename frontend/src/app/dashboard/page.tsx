@@ -262,9 +262,9 @@ export default function DashboardPage() {
                 <Link href="/pricing" className="w-full text-center bg-accent-primary hover:bg-accent-hover text-white py-2 rounded-lg text-sm font-medium transition-colors">
                   💳 Buy Credits
                 </Link>
-                <button className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors cursor-not-allowed opacity-50" title="Coming soon">
+                <Link href="/pricing" className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors">
                   Manage Subscription
-                </button>
+                </Link>
               </div>
             </div>
           ) : tier === 'PRO_LITE' ? (

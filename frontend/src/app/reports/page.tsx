@@ -12,7 +12,7 @@ import {
   ArrowUpDown,
   FileText,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Footer } from '@/components/layout/Footer';
@@ -40,13 +40,7 @@ type SortDir = 'asc' | 'desc';
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+
 
 function truncate(str: string, max: number) {
   return str.length > max ? str.slice(0, max) + '…' : str;
@@ -183,7 +177,7 @@ export default function ReportsPage() {
     <div className="min-h-screen flex flex-col bg-bg-primary">
       <Navbar />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         {/* Page Header */}
         <PageHeader
           title="Reports Library"

@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { CheckCircle2, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PipelineTracker } from '@/features/dashboard/PipelineTracker';
@@ -115,7 +116,7 @@ export default function AnalysisDashboardPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <PageHeader
-        title={`Analyzing ID: ${id}`}
+        title="Analysis in Progress"
         subtitle={`Current phase: ${data?.current_phase || 'Initializing...'}`}
       >
         <div className="mt-2 flex items-center gap-4">
@@ -216,6 +217,7 @@ export default function AnalysisDashboardPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -15,6 +15,7 @@ const PLANS = Object.values(SUBSCRIPTION_PLANS);
 export default function PricingPage() {
   const { data: session, status, update } = useSession();
   const [upgradingTo, setUpgradingTo] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const userTier = (session as any)?.user?.tier || 'FREE';
   const analysesUsed = (session as any)?.user?.analyses_used || 0;
@@ -47,7 +48,7 @@ export default function PricingPage() {
             return;
         }
         await update();
-        alert('Successfully purchased 1 analysis credit!');
+        setNotification({ type: 'success', text: 'Successfully purchased 1 analysis credit!' });
       } else {
         const res = await apiClient.upgradeSubscription(tier);
         if (res.checkout_url) {
@@ -55,16 +56,17 @@ export default function PricingPage() {
             return;
         }
         await update();
-        alert(`Successfully upgraded to ${tier}!`);
+        setNotification({ type: 'success', text: `Successfully upgraded to ${tier}!` });
       }
     } catch (error) {
       if (error instanceof Error && error.message.includes('Stripe payments are not yet enabled')) {
-          alert('Billing is currently in Sandbox preparation mode. Real payments are not yet enabled for this environment.');
+          setNotification({ type: 'error', text: 'Billing is currently in Sandbox preparation mode. Real payments are not yet enabled for this environment.' });
       } else {
-          alert(error instanceof Error ? error.message : 'Action failed');
+          setNotification({ type: 'error', text: error instanceof Error ? error.message : 'Action failed' });
       }
     } finally {
       setUpgradingTo(null);
+      setTimeout(() => setNotification(null), 5000);
     }
   };
 
@@ -75,7 +77,12 @@ export default function PricingPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 mt-14">
         
         {/* Header section */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16 relative">
+          {notification && (
+            <div className={cn("absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm font-medium shadow-lg animate-fade-in z-50 whitespace-nowrap", notification.type === 'success' ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20")}>
+              {notification.text}
+            </div>
+          )}
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
             Simple, transparent pricing
           </h1>
@@ -193,11 +200,11 @@ export default function PricingPage() {
                 >
                   {isUpgradingThis && <Loader2 className="h-4 w-4 animate-spin" />}
                   {isCurrentPlan 
-                    ? 'Manage Plan'
+                    ? 'Current Plan ✓'
                     : plan.tier === 'PAY_PER_ANALYSIS'
                       ? (status !== 'authenticated' ? 'Sign In to Buy' : 'Buy 1 Credit')
                       : isDowngrade
-                        ? 'Downgrade (Mock)'
+                        ? 'Downgrade'
                         : status !== 'authenticated'
                           ? 'Sign In to Select'
                           : 'Upgrade'}

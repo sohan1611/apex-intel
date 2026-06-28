@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://apex-intel-production-ae8f.up.railway.app/sitemap.xml

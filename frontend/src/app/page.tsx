@@ -134,9 +134,9 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-semibold text-text-primary tracking-tight leading-[1.1]">
-              Startup Analysis,{' '}
+              Institutional Due Diligence.{' '}
               <span className="text-accent-primary">
-                Systematized.
+                Powered by AI.
               </span>
             </h1>
 
@@ -164,34 +164,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ---- 2. Trusted By Section ---- */}
-        <section className="px-6 mt-12">
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted mb-5">
-              Trusted by Leading Investment Teams
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-8">
-              {TRUSTED_BY.map((name) => (
-                <span
-                  key={name}
-                  className="text-text-muted font-semibold text-lg tracking-tight opacity-40 select-none"
-                >
-                  {name}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* ---- 3. Platform Metrics Section ---- */}
-        <section className="px-6 mt-16">
-          <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard label="Analyses Completed" value="1,247" />
-            <MetricCard label="Companies Evaluated" value="892" />
-            <MetricCard label="Avg Confidence" value="73%" />
-            <MetricCard label="Agent Decisions" value="11.2K+" />
-          </div>
-        </section>
 
         {/* ---- 4. Feature Grid ---- */}
         <section className="px-6 mt-16">
