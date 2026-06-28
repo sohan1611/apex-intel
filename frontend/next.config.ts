@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  turbopack: {},
 };
 
 import { withSentryConfig } from "@sentry/nextjs";

@@ -13,7 +13,7 @@ class ApiError extends Error {
   }
 }
 
-import { getSession } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
