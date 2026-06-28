@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     PRO_PRICE: int = 56
     PAY_PER_ANALYSIS_PRICE: int = 29
 
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_PRO_LITE: str = ""
+    STRIPE_PRICE_PRO: str = ""
+    STRIPE_PRICE_CREDIT: str = ""
+
     ANALYSIS_MODE_OPTIMIZED: str = "optimized"
     ANALYSIS_MODE_FULL: str = "full"
 

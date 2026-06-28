@@ -173,10 +173,12 @@ async def start_analysis(
         background_tasks.add_task(
             _run_analysis_pipeline,
             analysis_id=str(analysis_id),
-            input_type=request.input_type,
-            content=request.content,
+            input_type=payload.input_type,
+            content=payload.content,
             mode=mode,
             model_name=model_name,
+            user_id=str(current_user.id),
+            using_credit=using_credit,
         )
 
         # ── Step 4: Return immediate response ───────────────────────
@@ -346,39 +348,68 @@ async def _run_analysis_pipeline(
     content: str,
     mode: str = "optimized",
     model_name: str = "gemini-2.5-flash",
+    user_id: str = None,
+    using_credit: bool = False,
 ) -> None:
-    """
-    Execute the full 5-phase orchestrator pipeline in the background.
+    import asyncio
+    from backend.db.connection import async_session_maker
+    from backend.db.models import User
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
 
-    This function is called by FastAPI's BackgroundTasks mechanism.
-    It creates its own DB session (since the request-scoped session
-    is already closed by the time the background work starts).
-
-    The orchestrator updates the Report row's status/progress/phase
-    as it moves through each stage.
-    """
     try:
-        logger.info("Starting analysis pipeline for %s", analysis_id)
+        logger.info("Starting analysis pipeline for %s (user: %s)", analysis_id, user_id)
 
-        # Create and run the orchestrator
-        # The orchestrator manages its own DB session internally
+        # Enforce a 5-minute timeout on the entire orchestrator pipeline
         orchestrator = MainOrchestrator()
-        await orchestrator.run_analysis(
-            analysis_id=analysis_id,
-            input_type=input_type,
-            content=content,
-            mode=mode,
-            model_name=model_name,
+        await asyncio.wait_for(
+            orchestrator.run_analysis(
+                analysis_id=analysis_id,
+                input_type=input_type,
+                content=content,
+                mode=mode,
+                model_name=model_name,
+            ),
+            timeout=300.0
         )
 
         logger.info("Analysis pipeline completed for %s", analysis_id)
 
     except Exception as exc:
-        # Log the error — the orchestrator should handle updating the
-        # report status to "failed" internally, but we log here as
-        # a safety net.
-        logger.exception(
-            "Analysis pipeline FAILED for %s: %s",
-            analysis_id,
-            exc,
-        )
+        # Log the error
+        logger.exception("Analysis pipeline FAILED for %s: %s", analysis_id, exc)
+        
+        async with async_session_maker() as session:
+            # 1. Update status to failed
+            repo = ReportRepository(session)
+            try:
+                await repo.update_status(analysis_id, "failed")
+                await repo.update_report_field(
+                    analysis_id,
+                    "error_log",
+                    {"error": str(exc), "phase": "orchestrator_timeout_or_crash"},
+                )
+            except Exception as update_err:
+                logger.exception("Failed to update error status: %s", update_err)
+                
+            # 2. Refund quota/credit
+            if user_id:
+                try:
+                    stmt = select(User).options(
+                        selectinload(User.usage_tracking),
+                        selectinload(User.analysis_credits)
+                    ).where(User.id == user_id).with_for_update()
+                    
+                    result = await session.execute(stmt)
+                    user_obj = result.scalar_one_or_none()
+                    
+                    if user_obj:
+                        if using_credit and user_obj.analysis_credits:
+                            user_obj.analysis_credits.purchased_credits += 1
+                            logger.info(f"Refunded 1 credit to user {user_id}")
+                        elif not using_credit and user_obj.usage_tracking:
+                            user_obj.usage_tracking.analyses_used = max(0, user_obj.usage_tracking.analyses_used - 1)
+                            logger.info(f"Refunded 1 monthly quota to user {user_id}")
+                        await session.commit()
+                except Exception as refund_err:
+                    logger.exception("Failed to refund quota: %s", refund_err)

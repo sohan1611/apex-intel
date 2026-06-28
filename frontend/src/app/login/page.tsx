@@ -80,6 +80,12 @@ function LoginForm() {
         </div>
       )}
 
+      {searchParams.get('session_expired') === 'true' && (
+        <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-sm">
+          Your session has expired. Please sign in again.
+        </div>
+      )}
+
       <form onSubmit={handleCredentialsLogin} className="space-y-4 mb-6">
         <div className="text-left">
           <label className="block text-sm font-medium text-text-secondary mb-1">Email</label>

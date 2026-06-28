@@ -41,16 +41,28 @@ export default function PricingPage() {
     try {
       setUpgradingTo(tier);
       if (tier === 'PAY_PER_ANALYSIS') {
-        await apiClient.purchaseCredits(1);
+        const res = await apiClient.purchaseCredits(1);
+        if (res.checkout_url) {
+            window.location.href = res.checkout_url;
+            return;
+        }
         await update();
         alert('Successfully purchased 1 analysis credit!');
       } else {
-        await apiClient.upgradeSubscription(tier);
+        const res = await apiClient.upgradeSubscription(tier);
+        if (res.checkout_url) {
+            window.location.href = res.checkout_url;
+            return;
+        }
         await update();
         alert(`Successfully upgraded to ${tier}!`);
       }
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Action failed');
+      if (error instanceof Error && error.message.includes('Stripe payments are not yet enabled')) {
+          alert('Billing is currently in Sandbox preparation mode. Real payments are not yet enabled for this environment.');
+      } else {
+          alert(error instanceof Error ? error.message : 'Action failed');
+      }
     } finally {
       setUpgradingTo(null);
     }

@@ -39,3 +39,6 @@ pyjwt>=2.8.0                       # JWT creation and verification
 google-auth>=2.29.0                # Verifying Google id_tokens
 passlib>=1.7.4                     # Password hashing
 argon2-cffi>=23.1.0                # Argon2 backend for passlib
+
+# ── Monitoring ───────────────────────────────────────────────────────────
+sentry-sdk>=2.14.0

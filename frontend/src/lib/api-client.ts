@@ -36,6 +36,11 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      if (typeof window !== 'undefined') {
+        signOut({ callbackUrl: '/login?session_expired=true' });
+      }
+    }
     let errorMessage = `API Error: ${response.status} ${response.statusText}`;
     try {
       const errorData = await response.json();
@@ -74,15 +79,15 @@ export const apiClient = {
     return res.reports ?? [];
   },
 
-  upgradeSubscription: async (tier: string): Promise<{ message: string; new_tier: string }> => {
-    return fetchApi<{ message: string; new_tier: string }>('/api/v1/billing/upgrade', {
+  upgradeSubscription: async (tier: string): Promise<{ message: string; new_tier: string; checkout_url?: string }> => {
+    return fetchApi<{ message: string; new_tier: string; checkout_url?: string }>('/api/v1/billing/upgrade', {
       method: 'POST',
       body: JSON.stringify({ tier }),
     });
   },
 
-  purchaseCredits: async (amount: number): Promise<{ message: string; purchased_credits: number }> => {
-    return fetchApi<{ message: string; purchased_credits: number }>('/api/v1/billing/credits', {
+  purchaseCredits: async (amount: number): Promise<{ message: string; purchased_credits: number; checkout_url?: string }> => {
+    return fetchApi<{ message: string; purchased_credits: number; checkout_url?: string }>('/api/v1/billing/credits', {
       method: 'POST',
       body: JSON.stringify({ amount }),
     });

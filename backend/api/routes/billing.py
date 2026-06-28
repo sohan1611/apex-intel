@@ -5,10 +5,22 @@ from backend.db.connection import get_db
 from backend.db.models import User, Subscription
 from backend.core.security import get_current_user
 import logging
+import stripe
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.db.connection import get_db
+from backend.db.models import User, Subscription, CreditUsageHistory
+from backend.core.security import get_current_user
+from backend.config.settings import settings
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Billing"])
+
+if settings.STRIPE_SECRET_KEY:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class UpgradeRequest(BaseModel):
     tier: str  # "PRO_LITE" or "PRO"
@@ -16,6 +28,7 @@ class UpgradeRequest(BaseModel):
 class UpgradeResponse(BaseModel):
     message: str
     new_tier: str
+    checkout_url: str = None
 
 class CreditPurchaseRequest(BaseModel):
     amount: int
@@ -23,6 +36,7 @@ class CreditPurchaseRequest(BaseModel):
 class CreditPurchaseResponse(BaseModel):
     message: str
     purchased_credits: int
+    checkout_url: str = None
 
 @router.post("/upgrade", response_model=UpgradeResponse)
 async def upgrade_subscription(
@@ -30,11 +44,7 @@ async def upgrade_subscription(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Mock endpoint to upgrade a user's subscription tier.
-    In a real application, this would integrate with Stripe or Razorpay.
-    """
-    valid_tiers = {"FREE", "PRO_LITE", "PRO"}
+    valid_tiers = {"PRO_LITE", "PRO"}
     new_tier = request.tier.upper()
     
     if new_tier not in valid_tiers:
@@ -43,25 +53,36 @@ async def upgrade_subscription(
             detail="Invalid subscription tier.",
         )
         
-    subscription = current_user.subscription
-    if not subscription:
-        # Should not happen as it's created on login, but just in case
-        subscription = Subscription(user_id=current_user.id)
-        db.add(subscription)
-        
-    subscription.tier = new_tier
+    if not settings.STRIPE_SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Stripe payments are not yet enabled in this environment."
+        )
+
+    price_id = settings.STRIPE_PRICE_PRO_LITE if new_tier == "PRO_LITE" else settings.STRIPE_PRICE_PRO
     
-    if current_user.usage_tracking:
-        current_user.usage_tracking.analyses_used = 0  # Reset usage on upgrade
-    
-    await db.commit()
-    
-    logger.info(f"User {current_user.email} upgraded to {new_tier}")
-    
-    return UpgradeResponse(
-        message=f"Successfully upgraded to {new_tier}",
-        new_tier=new_tier
-    )
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url='http://localhost:3000/dashboard?upgrade=success',
+            cancel_url='http://localhost:3000/pricing?upgrade=cancelled',
+            client_reference_id=str(current_user.id),
+            metadata={'tier': new_tier, 'user_id': str(current_user.id)}
+        )
+        return UpgradeResponse(
+            message="Checkout session created",
+            new_tier=new_tier,
+            checkout_url=checkout_session.url
+        )
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
 
 @router.post("/credits", response_model=CreditPurchaseResponse)
 async def purchase_credits(
@@ -69,34 +90,87 @@ async def purchase_credits(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Mock endpoint to purchase pay-per-analysis credits.
-    """
     if request.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive.")
 
-    # In a real system, we'd process payment here
-    
-    from backend.db.models import CreditUsageHistory
-    
-    if current_user.analysis_credits:
-        current_user.analysis_credits.purchased_credits += request.amount
-        
-        # Log purchase
-        history = CreditUsageHistory(
-            user_id=current_user.id,
-            amount=request.amount,
-            transaction_type="PURCHASE"
+    if not settings.STRIPE_SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Stripe payments are not yet enabled in this environment."
         )
-        db.add(history)
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price': settings.STRIPE_PRICE_CREDIT,
+                    'quantity': request.amount,
+                },
+            ],
+            mode='payment',
+            success_url='http://localhost:3000/dashboard?purchase=success',
+            cancel_url='http://localhost:3000/pricing?purchase=cancelled',
+            client_reference_id=str(current_user.id),
+            metadata={'amount': request.amount, 'user_id': str(current_user.id), 'type': 'credits'}
+        )
+        return CreditPurchaseResponse(
+            message="Checkout session created",
+            purchased_credits=current_user.analysis_credits.purchased_credits if current_user.analysis_credits else 0,
+            checkout_url=checkout_session.url
+        )
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+
+@router.post("/webhook")
+async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        raise HTTPException(status_code=501, detail="Stripe webhook not configured")
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('client_reference_id')
+        metadata = session.get('metadata', {})
         
-        await db.commit()
-    else:
-        raise HTTPException(status_code=500, detail="Credit wallet not found")
+        if not user_id:
+            logger.error("No user_id found in Stripe session")
+            return {"status": "error"}
+
+        stmt = select(User).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
         
-    logger.info(f"User {current_user.email} purchased {request.amount} credits")
-    
-    return CreditPurchaseResponse(
-        message=f"Successfully purchased {request.amount} credits",
-        purchased_credits=current_user.analysis_credits.purchased_credits
-    )
+        if not user:
+            logger.error(f"User {user_id} not found for webhook processing")
+            return {"status": "error"}
+
+        if metadata.get('type') == 'credits':
+            amount = int(metadata.get('amount', 0))
+            if amount > 0 and user.analysis_credits:
+                user.analysis_credits.purchased_credits += amount
+                db.add(CreditUsageHistory(user_id=user.id, amount=amount, transaction_type="PURCHASE"))
+                await db.commit()
+                logger.info(f"Granted {amount} credits to {user.email}")
+        else:
+            tier = metadata.get('tier')
+            if tier and user.subscription:
+                user.subscription.tier = tier
+                if user.usage_tracking:
+                    user.usage_tracking.analyses_used = 0
+                await db.commit()
+                logger.info(f"Upgraded {user.email} to {tier}")
+
+    return {"status": "success"}
+

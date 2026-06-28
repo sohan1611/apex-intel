@@ -42,6 +42,15 @@ limiter = Limiter(key_func=get_remote_address)
 
 from fastapi.responses import JSONResponse
 from fastapi import Request
+import os
+import sentry_sdk
+
+if os.getenv("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN"),
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
 
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
