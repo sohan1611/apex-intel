@@ -12,6 +12,8 @@ import { PipelineTracker } from '@/features/dashboard/PipelineTracker';
 import { MOCK_PIPELINE_PHASES } from '@/lib/mock-data';
 import type { PipelinePhase } from '@/types/report';
 import { useAnalysisStatus } from '@/hooks/use-api';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 
 // Simulation Logic removed in favor of real backend status.
 
@@ -54,19 +56,13 @@ export default function AnalysisDashboardPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
+  const { data: session } = useSession();
+  const tier = (session?.user as any)?.tier || 'FREE';
   const { data, isLoading, isError, error } = useAnalysisStatus(id);
+  const [dismissUpsell, setDismissUpsell] = useState(false);
 
   const isComplete = data?.status === 'completed';
   const isFailed = data?.status === 'failed';
-
-  useEffect(() => {
-    if (isComplete) {
-      const timer = setTimeout(() => {
-        router.push(`/report/${id}`);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isComplete, id, router]);
 
   // Map backend progress (0-100) to 5 distinct phases
   const overallProgress = data?.progress || 0;
@@ -164,6 +160,33 @@ export default function AnalysisDashboardPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
+            
+            {tier !== 'PRO' && !dismissUpsell && (
+              <div className="mt-4 rounded-lg bg-accent-primary/5 border border-accent-primary/20 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in shadow-sm relative">
+                <div>
+                  <p className="text-sm font-semibold text-accent-primary">
+                    Want deeper due diligence?
+                  </p>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Unlock the complete 9-Agent pipeline.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <Link
+                    href="/pricing"
+                    className="w-full sm:w-auto text-center px-4 py-2 rounded-md bg-accent-primary text-white text-sm font-medium hover:bg-accent-hover transition-colors shadow-sm whitespace-nowrap"
+                  >
+                    Upgrade Now
+                  </Link>
+                  <button 
+                    onClick={() => setDismissUpsell(true)}
+                    className="text-text-tertiary hover:text-text-primary transition-colors text-xs underline shrink-0"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {isFailed && (

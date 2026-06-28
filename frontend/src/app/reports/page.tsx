@@ -23,6 +23,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useReports } from '@/hooks/use-api';
 import type { ReportListItem } from '@/types/report';
 import ReportSelectionBar from '@/features/reports/ReportSelectionBar';
+import { useSession } from 'next-auth/react';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -57,6 +58,8 @@ function truncate(str: string, max: number) {
 
 export default function ReportsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const tier = (session?.user as any)?.tier || 'FREE';
   const { data } = useReports();
   const rawReports = data || [];
 
@@ -305,10 +308,17 @@ export default function ReportsPage() {
                       title="No reports found"
                       description="You haven't generated any reports matching these filters yet."
                       action={
-                        <Link href="/analyze" className="mt-4 inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-4 py-2 rounded-md text-sm font-medium hover:bg-text-secondary transition-colors">
-                          <Plus className="h-4 w-4" />
-                          New Analysis
-                        </Link>
+                        <div className="flex items-center gap-3 mt-4">
+                          <Link href="/analyze" className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-4 py-2 rounded-md text-sm font-medium hover:bg-text-secondary transition-colors">
+                            <Plus className="h-4 w-4" />
+                            New Analysis
+                          </Link>
+                          {tier === 'FREE' && (
+                            <Link href="/pricing" className="inline-flex items-center justify-center gap-2 bg-accent-primary border border-accent-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-accent-hover transition-colors">
+                              ✨ Upgrade to Pro
+                            </Link>
+                          )}
+                        </div>
                       }
                     />
                   </td>

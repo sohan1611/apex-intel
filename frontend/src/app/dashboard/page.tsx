@@ -27,6 +27,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useReports } from '@/hooks/use-api';
 import { formatDate } from '@/lib/utils';
 import { getPlanConfig } from '@/lib/subscription';
+import { useState, useEffect } from 'react';
 
 // -- Quick action items -------------------------------------------------------
 
@@ -56,6 +57,7 @@ const QUICK_ACTIONS = [
 export default function DashboardPage() {
   const { data: session, status: sessionStatus } = useSession();
   const { data, isLoading: reportsLoading } = useReports();
+  const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
   
   // Loading State (Skeleton)
   if (sessionStatus === 'loading' || reportsLoading) {
@@ -112,12 +114,60 @@ export default function DashboardPage() {
   const pipelineType = userConfig.pipelineType;
   const isPro = tier === 'PRO' || tier === 'PRO_LITE';
 
+  // Banner logic
+  useEffect(() => {
+    if (tier === 'FREE') {
+      const dismissed = sessionStorage.getItem('upgrade_banner_dismissed');
+      if (!dismissed) {
+        setShowUpgradeBanner(true);
+      }
+    }
+  }, [tier]);
+
+  const dismissBanner = () => {
+    sessionStorage.setItem('upgrade_banner_dismissed', 'true');
+    setShowUpgradeBanner(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-bg-primary">
       <Navbar />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         
+        {/* Sticky Upgrade Banner for FREE */}
+        {showUpgradeBanner && (
+          <div className="mb-6 rounded-lg bg-accent-primary/10 border border-accent-primary/20 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in shadow-sm relative">
+            <div className="flex items-center gap-3">
+              <Zap className="h-5 w-5 text-accent-primary shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-accent-primary">
+                  Unlock Full 9-Agent Due Diligence
+                </p>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  Access deep market analysis, hidden assumptions validation, and contradiction detection.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Link
+                href="/pricing"
+                className="w-full sm:w-auto text-center px-4 py-2 rounded-md bg-accent-primary text-white text-sm font-medium hover:bg-accent-hover transition-colors shadow-sm whitespace-nowrap"
+              >
+                ✨ Upgrade
+              </Link>
+              <button 
+                onClick={dismissBanner}
+                className="p-2 text-text-tertiary hover:text-text-primary transition-colors shrink-0"
+                aria-label="Dismiss"
+              >
+                <ChevronRight className="h-4 w-4 hidden" /> {/* For spacing */}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ---- Page Header ---- */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-text-primary tracking-tight mb-2">
@@ -192,7 +242,7 @@ export default function DashboardPage() {
           {tier === 'PRO' ? (
             <div className="rounded-xl border border-accent-primary/20 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm">
               <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Star className="h-4 w-4 text-accent-primary" /> Pro Subscription
+                <Star className="h-4 w-4 text-accent-primary" /> {userConfig.name} Subscription
               </h2>
               <div className="space-y-4 flex-1">
                 <div className="flex justify-between items-center text-sm border-b border-border-subtle pb-3">
@@ -210,9 +260,9 @@ export default function DashboardPage() {
               </div>
               <div className="mt-4 flex flex-col gap-2">
                 <Link href="/pricing" className="w-full text-center bg-accent-primary hover:bg-accent-hover text-white py-2 rounded-lg text-sm font-medium transition-colors">
-                  Buy Additional Credits
+                  💳 Buy Credits
                 </Link>
-                <button className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors">
+                <button className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors cursor-not-allowed opacity-50" title="Coming soon">
                   Manage Subscription
                 </button>
               </div>
@@ -220,35 +270,55 @@ export default function DashboardPage() {
           ) : tier === 'PRO_LITE' ? (
             <div className="rounded-xl border border-accent-primary/20 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm">
               <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-accent-primary" /> Pro Lite
+                <Zap className="h-4 w-4 text-accent-primary" /> {userConfig.name}
               </h2>
               <div className="flex-1 space-y-3">
+                <div className="flex justify-between items-center text-sm mb-3 pb-3 border-b border-border-subtle">
+                  <span className="text-text-secondary">Analyses Left</span>
+                  <span className="font-medium text-text-primary">{remaining} / {limit + credits} total</span>
+                </div>
                 <p className="text-sm text-text-secondary mb-2">Upgrade to Pro to unlock institutional capabilities:</p>
                 <ul className="space-y-2 text-sm text-text-tertiary">
-                  <li className="flex items-center gap-2 opacity-75"><Lock className="w-3.5 h-3.5" /> Contradiction Detection</li>
-                  <li className="flex items-center gap-2 opacity-75"><Lock className="w-3.5 h-3.5" /> Hidden Assumptions Validation</li>
-                  <li className="flex items-center gap-2 opacity-75"><Lock className="w-3.5 h-3.5" /> Full 9-Agent Pipeline</li>
+                  {userConfig.features.filter(f => !f.included).map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-2 opacity-75">
+                      <Lock className="w-3.5 h-3.5 shrink-0" /> {feature.name}
+                    </li>
+                  ))}
                 </ul>
               </div>
               <Link href="/pricing" className="w-full mt-4 text-center bg-text-primary hover:bg-text-secondary text-bg-primary py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm">
-                Upgrade to Pro
+                🚀 Upgrade to Pro
               </Link>
             </div>
           ) : (
             <div className="rounded-xl border border-border-default bg-bg-secondary p-6 flex flex-col shadow-sm">
               <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-text-muted" /> Free Plan
+                <Zap className="h-4 w-4 text-text-muted" /> {userConfig.name} Plan
               </h2>
-              <div className="flex-1 flex flex-col justify-center mb-4">
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  Upgrade your plan to unlock premium AI models, full 9-agent analysis, and institutional-grade due diligence.
-                </p>
+              <div className="flex-1 flex flex-col justify-start mb-4">
+                <div className="flex justify-between items-center text-sm mb-4">
+                  <span className="text-text-secondary">Analyses Left</span>
+                  <span className="font-medium text-text-primary">{remaining} / {limit}</span>
+                </div>
+                <p className="text-xs font-medium text-text-secondary mb-2 uppercase tracking-wider">Premium Features Locked</p>
+                <ul className="space-y-2 text-sm text-text-tertiary mb-4">
+                  {userConfig.features.filter(f => !f.included).slice(0, 3).map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-2 opacity-75">
+                      <Lock className="w-3.5 h-3.5 shrink-0" /> {feature.name}
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div className="flex flex-col gap-2">
-                <Link href="/pricing" className="w-full text-center bg-accent-primary hover:bg-accent-hover text-white py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
-                  Upgrade to Pro
-                </Link>
-                <Link href="/pricing" className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors">
+                <div className="grid grid-cols-2 gap-2">
+                  <Link href="/pricing" className="w-full text-center bg-bg-tertiary hover:bg-bg-elevated border border-border-default text-text-primary py-2 rounded-lg text-sm font-medium transition-colors text-xs whitespace-nowrap">
+                    Upgrade to Pro Lite
+                  </Link>
+                  <Link href="/pricing" className="w-full text-center bg-accent-primary hover:bg-accent-hover text-white py-2 rounded-lg text-sm font-medium transition-colors shadow-sm text-xs whitespace-nowrap">
+                    Upgrade to Pro
+                  </Link>
+                </div>
+                <Link href="/pricing" className="w-full text-center bg-transparent text-text-tertiary hover:text-text-primary py-2 rounded-lg text-sm transition-colors mt-1">
                   Compare Plans
                 </Link>
               </div>
@@ -337,9 +407,15 @@ export default function DashboardPage() {
                         <Link href="/analyze" className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto">
                           New Analysis
                         </Link>
-                        <Link href="/analyze" className="inline-flex items-center justify-center gap-2 bg-bg-tertiary border border-border-default text-text-primary px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-bg-elevated transition-colors w-full sm:w-auto">
-                          Try Example
-                        </Link>
+                        {tier === 'FREE' ? (
+                          <Link href="/pricing" className="inline-flex items-center justify-center gap-2 bg-accent-primary border border-accent-primary text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors w-full sm:w-auto">
+                            ✨ Upgrade to Pro
+                          </Link>
+                        ) : (
+                          <Link href="/analyze" className="inline-flex items-center justify-center gap-2 bg-bg-tertiary border border-border-default text-text-primary px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-bg-elevated transition-colors w-full sm:w-auto">
+                            Try Example
+                          </Link>
+                        )}
                       </div>
                     }
                   />
@@ -434,9 +510,14 @@ export default function DashboardPage() {
               <div className="divide-y divide-border-default flex-1">
                 {topOpportunities.length === 0 ? (
                   <div className="p-6 text-center">
-                    <p className="text-sm text-text-secondary leading-relaxed">
+                    <p className="text-sm text-text-secondary leading-relaxed mb-4">
                       Your highest-rated startups will automatically appear here after your first completed report.
                     </p>
+                    {tier === 'FREE' && (
+                      <Link href="/pricing" className="inline-block bg-bg-tertiary hover:bg-bg-elevated border border-border-default px-4 py-2 rounded-md text-xs font-medium text-text-primary transition-colors">
+                        ✨ Upgrade to Pro
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   topOpportunities.map((report, i) => (

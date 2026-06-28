@@ -107,6 +107,17 @@ export default function Navbar() {
 
           <div className="w-px h-5 bg-border-default mx-2" />
 
+          {status === 'authenticated' && (
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium bg-accent-primary hover:bg-accent-hover text-white transition-colors shadow-sm"
+            >
+              {((session?.user as any)?.tier === 'PRO') ? '💳 Buy Credits' : 
+               ((session?.user as any)?.tier === 'PRO_LITE') ? '🚀 Upgrade to Pro' : 
+               '✨ Upgrade'}
+            </Link>
+          )}
+
           <Link
             href="/analyze"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium
@@ -174,6 +185,18 @@ export default function Navbar() {
                 <LogIn className="h-4 w-4" /> Sign In with Google
               </button>
             ) : null}
+
+            {status === 'authenticated' && (
+              <Link
+                href="/pricing"
+                className="mt-2 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium bg-accent-primary hover:bg-accent-hover text-white transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {((session?.user as any)?.tier === 'PRO') ? '💳 Buy Credits' : 
+                 ((session?.user as any)?.tier === 'PRO_LITE') ? '🚀 Upgrade to Pro' : 
+                 '✨ Upgrade'}
+              </Link>
+            )}
 
             <Link
               href="/analyze"
