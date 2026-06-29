@@ -17,7 +17,7 @@ export interface PlanConfig {
   popular?: boolean;
   features: PlanFeature[];
   rank: number;
-  stripePriceEnv?: string; // Informational mapping for parity with backend
+  providerPriceEnv?: string; // Links to environment variable containing the actual Price ID
 }
 
 // Single Source of Truth for the Frontend
@@ -53,7 +53,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     aiModel: 'Gemini 2.5 Flash',
     pipelineType: 'Full 9-Agent Pipeline',
     rank: 1,
-    stripePriceEnv: 'STRIPE_PRICE_CREDIT',
+    providerPriceEnv: 'STRIPE_PRICE_CREDIT',
     features: [
       { name: 'One-time purchase', included: true },
       { name: 'Credits never expire', included: true },
@@ -74,7 +74,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     aiModel: 'Gemini 2.5 Flash',
     pipelineType: 'Standard 5-Agent Pipeline',
     rank: 2,
-    stripePriceEnv: 'STRIPE_PRICE_PRO_LITE',
+    providerPriceEnv: 'STRIPE_PRICE_PRO_LITE',
     features: [
       { name: '5 analyses per month', included: true },
       { name: 'Premium AI Model Access', included: true },
@@ -96,7 +96,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     pipelineType: 'Full 9-Agent Pipeline',
     popular: true,
     rank: 3,
-    stripePriceEnv: 'STRIPE_PRICE_PRO',
+    providerPriceEnv: 'STRIPE_PRICE_PRO',
     features: [
       { name: '10 analyses per month', included: true },
       { name: 'Premium AI Model Access', included: true },

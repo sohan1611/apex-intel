@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     # ── Monetization & Pricing Configuration ──────────────────────────────
     # Limits and base prices are now centralized in backend.core.subscription
+    PAYMENT_PROVIDER: str = "stripe"
     
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""

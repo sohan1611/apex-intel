@@ -19,8 +19,8 @@ class PlanConfig(BaseModel):
     popular: bool = False
     features: List[PlanFeature]
     rank: int
-    stripe_product_env: Optional[str] = None
-    stripe_price_env: Optional[str] = None
+    provider_product_env: Optional[str] = None
+    provider_price_env: Optional[str] = None
 
 # Single Source of Truth for the Backend
 SUBSCRIPTION_PLANS: Dict[SubscriptionTier, PlanConfig] = {
@@ -54,7 +54,7 @@ SUBSCRIPTION_PLANS: Dict[SubscriptionTier, PlanConfig] = {
         ai_model="Gemini 2.5 Flash",
         pipeline_type="Full 9-Agent Pipeline",
         rank=1,
-        stripe_price_env="STRIPE_PRICE_CREDIT",
+        provider_price_env="STRIPE_PRICE_CREDIT",
         features=[
             PlanFeature(name="One-time purchase", included=True),
             PlanFeature(name="Credits never expire", included=True),
@@ -75,7 +75,7 @@ SUBSCRIPTION_PLANS: Dict[SubscriptionTier, PlanConfig] = {
         ai_model="Gemini 2.5 Flash",
         pipeline_type="Standard 5-Agent Pipeline",
         rank=2,
-        stripe_price_env="STRIPE_PRICE_PRO_LITE",
+        provider_price_env="STRIPE_PRICE_PRO_LITE",
         features=[
             PlanFeature(name="5 analyses per month", included=True),
             PlanFeature(name="Premium AI Model Access", included=True),
@@ -97,7 +97,7 @@ SUBSCRIPTION_PLANS: Dict[SubscriptionTier, PlanConfig] = {
         pipeline_type="Full 9-Agent Pipeline",
         popular=True,
         rank=3,
-        stripe_price_env="STRIPE_PRICE_PRO",
+        provider_price_env="STRIPE_PRICE_PRO",
         features=[
             PlanFeature(name="10 analyses per month", included=True),
             PlanFeature(name="Premium AI Model Access", included=True),
@@ -114,11 +114,3 @@ SUBSCRIPTION_PLANS: Dict[SubscriptionTier, PlanConfig] = {
 def get_plan_config(tier: SubscriptionTier) -> PlanConfig:
     """Returns the strongly-typed plan configuration."""
     return SUBSCRIPTION_PLANS.get(tier, SUBSCRIPTION_PLANS[SubscriptionTier.FREE])
-
-def get_stripe_price_id(tier: SubscriptionTier) -> Optional[str]:
-    """Resolves the Stripe Price ID from settings dynamically based on the plan's env mapping."""
-    from backend.config.settings import settings
-    config = get_plan_config(tier)
-    if not config.stripe_price_env:
-        return None
-    return getattr(settings, config.stripe_price_env, None)
