@@ -21,9 +21,8 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -354,8 +353,6 @@ async def _run_analysis_pipeline(
     import asyncio
     from backend.db.connection import async_session_maker
     from backend.db.models import User
-    from sqlalchemy import select
-    from sqlalchemy.orm import selectinload
 
     try:
         logger.info("Starting analysis pipeline for %s (user: %s)", analysis_id, user_id)

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Optional, Sequence
+from typing import Any, Sequence
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession

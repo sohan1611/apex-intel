@@ -1,4 +1,3 @@
-import sys
 print("STARTING PYTHON SCRIPT...", flush=True)
 import os
 print("OS IMPORTED", flush=True)

@@ -2,7 +2,6 @@ import asyncio
 import httpx
 import jwt
 from datetime import datetime, timezone, timedelta
-from typing import Any
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.future import select

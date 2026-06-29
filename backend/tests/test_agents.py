@@ -13,7 +13,7 @@ The OpenAI client is mocked so these tests run without API keys.
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 

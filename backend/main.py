@@ -35,12 +35,10 @@ from slowapi.errors import RateLimitExceeded
 
 from backend.config.settings import settings
 from backend.db.connection import init_db
-from backend.core.ratelimit import get_user_rate_limit
 
 limiter = Limiter(key_func=get_remote_address)
 
 
-from fastapi.responses import JSONResponse
 from fastapi import Request
 import os
 import sentry_sdk

@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
 
 from backend.config.settings import settings
 from backend.db.connection import async_session_maker

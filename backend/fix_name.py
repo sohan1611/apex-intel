@@ -1,6 +1,4 @@
-import os
 import glob
-import re
 
 def fix_name():
     agent_files = glob.glob("agents/*.py")

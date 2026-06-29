@@ -1,6 +1,5 @@
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.future import select
 from sqlalchemy import text
 
 async def main():

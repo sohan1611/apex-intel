@@ -1,4 +1,3 @@
-import asyncio
 from backend.db.models import User, Subscription, UsageTracking, AnalysisCredit
 from backend.core.enums import SubscriptionTier
 from backend.core.feature_gates import (

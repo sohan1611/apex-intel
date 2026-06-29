@@ -19,47 +19,81 @@ class ApiError extends Error {
 
 import { getSession, signOut } from 'next-auth/react';
 
-async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function fetchApi<T>(endpoint: string, options: RequestInit & { timeout?: number; retries?: number } = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
   const session = await getSession();
   const token = (session as { accessToken?: string })?.accessToken;
 
+  const { timeout = 15000, retries = 0, ...fetchOptions } = options;
+  
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...(fetchOptions.headers as Record<string, string>),
   };
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    if (response.status === 401) {
-      if (typeof window !== 'undefined') {
-        signOut({ callbackUrl: '/login?session_expired=true' });
-      }
-    }
-    let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+  let attempt = 0;
+  while (attempt <= retries) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    
     try {
-      const errorData = await response.json();
-      if (errorData.detail) {
-        errorMessage = Array.isArray(errorData.detail) 
-          ? errorData.detail.map((d: { msg: string }) => d.msg).join(', ') 
-          : errorData.detail;
-      }
-    } catch {
-      // Ignore if no JSON body
-    }
-    throw new ApiError(response.status, errorMessage);
-  }
+      const response = await fetch(url, {
+        ...fetchOptions,
+        headers,
+        signal: controller.signal
+      });
 
-  return response.json();
+      if (!response.ok) {
+        if (response.status === 401 && typeof window !== 'undefined') {
+          signOut({ callbackUrl: '/login?session_expired=true' });
+        }
+        
+        let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = Array.isArray(errorData.detail) 
+              ? errorData.detail.map((d: { msg: string }) => d.msg).join(', ') 
+              : errorData.detail;
+          }
+        } catch {
+          // Ignore if no JSON body
+        }
+        
+        // Don't retry on 4xx errors
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          throw new ApiError(response.status, errorMessage);
+        }
+        
+        if (attempt === retries) {
+          throw new ApiError(response.status, errorMessage);
+        }
+      } else {
+        return await response.json();
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        if (attempt === retries) throw new ApiError(408, 'Request timed out');
+      } else if (error instanceof ApiError) {
+        throw error;
+      } else {
+        if (attempt === retries) throw new ApiError(500, error.message || 'Network error');
+      }
+    } finally {
+      clearTimeout(id);
+    }
+    
+    attempt++;
+    // Exponential backoff
+    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 500));
+  }
+  
+  throw new ApiError(500, 'Max retries exceeded');
 }
 
 export const apiClient = {

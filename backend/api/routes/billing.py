@@ -2,16 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.db.connection import get_db
-from backend.db.models import User, Subscription
+from backend.db.models import User
 from backend.core.security import get_current_user
 import logging
 import stripe
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from backend.db.connection import get_db
-from backend.db.models import User, Subscription, CreditUsageHistory
-from backend.core.security import get_current_user
+from fastapi import Request
+from backend.db.models import CreditUsageHistory
 from backend.config.settings import settings
 from sqlalchemy import select
 
