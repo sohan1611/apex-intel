@@ -143,10 +143,10 @@ export default function PricingPage() {
               <div 
                 key={plan.tier}
                 className={cn(
-                  "relative flex flex-col p-8 bg-bg-secondary rounded-2xl border transition-all",
+                  "relative flex flex-col p-8 bg-bg-secondary rounded-2xl border transition-all duration-300",
                   plan.popular 
-                    ? "border-accent-primary shadow-lg shadow-accent-primary/10 scale-105 z-10" 
-                    : "border-border-default hover:border-border-hover"
+                    ? "border-accent-primary shadow-lg shadow-accent-primary/20 scale-105 z-10 hover:shadow-xl hover:shadow-accent-primary/30" 
+                    : "border-border-default hover:border-border-hover hover:-translate-y-1 hover:shadow-md"
                 )}
               >
                 {plan.popular && (
@@ -158,9 +158,14 @@ export default function PricingPage() {
                 
                 <div className="mb-8">
                   <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
-                    <span className="text-text-secondary">{plan.interval}</span>
+                  <div className="flex flex-col mb-4">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
+                      <span className="text-text-secondary">{plan.interval}</span>
+                    </div>
+                    {plan.popular && (
+                      <span className="text-sm font-medium text-green-500 mt-1">Save over 80% vs Pay-Per-Analysis</span>
+                    )}
                   </div>
                   <p className="text-text-secondary text-sm min-h-[40px]">
                     {plan.description}
@@ -188,23 +193,23 @@ export default function PricingPage() {
                   onClick={() => handleUpgrade(plan.tier)}
                   disabled={isCurrentPlan || upgradingTo !== null}
                   className={cn(
-                    "w-full py-3 px-4 rounded-lg font-medium transition-colors flex justify-center items-center gap-2 border",
+                    "w-full py-3 px-4 rounded-lg font-medium transition-all duration-300 flex justify-center items-center gap-2 border",
                     isCurrentPlan 
-                      ? "bg-bg-primary text-text-secondary border-border-default hover:bg-bg-tertiary"
+                      ? "bg-accent-primary/10 text-accent-primary border-accent-primary/20 shadow-sm cursor-default"
                       : plan.tier === 'PAY_PER_ANALYSIS'
                         ? "bg-bg-secondary text-text-primary border-border-hover hover:border-text-primary hover:bg-bg-tertiary"
                         : plan.popular
-                          ? "bg-accent-primary border-accent-primary hover:bg-accent-hover text-white shadow-sm"
-                          : "bg-text-primary border-text-primary hover:bg-text-secondary text-bg-primary"
+                          ? "bg-accent-primary border-accent-primary hover:bg-accent-hover text-white shadow-md hover:shadow-lg hover:shadow-accent-primary/20"
+                          : "bg-text-primary border-text-primary hover:bg-text-secondary text-bg-primary shadow-sm hover:shadow-md"
                   )}
                 >
                   {isUpgradingThis && <Loader2 className="h-4 w-4 animate-spin" />}
                   {isCurrentPlan 
-                    ? 'Current Plan ✓'
+                    ? '✓ Current Plan'
                     : plan.tier === 'PAY_PER_ANALYSIS'
                       ? (status !== 'authenticated' ? 'Sign In to Buy' : 'Buy 1 Credit')
                       : isDowngrade
-                        ? 'Downgrade'
+                        ? (plan.tier === 'FREE' ? 'Switch to Free' : 'Switch Plan')
                         : status !== 'authenticated'
                           ? 'Sign In to Select'
                           : 'Upgrade'}
@@ -215,24 +220,27 @@ export default function PricingPage() {
         </div>
 
         {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto mt-24">
-          <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
-          <div className="space-y-6">
-            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
-              <h3 className="font-semibold text-lg mb-2">How do monthly limits work?</h3>
-              <p className="text-text-secondary text-sm">Your analysis quota resets on the 1st of every month. Unused monthly analyses do not roll over to the next month.</p>
+        <div className="max-w-4xl mx-auto mt-24">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold mb-4">Understanding Your Limits</h2>
+            <p className="text-text-secondary">Everything you need to know about billing and quotas.</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default hover:border-border-hover transition-colors">
+              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Zap className="w-4 h-4 text-accent-primary" /> Monthly Reset</h3>
+              <p className="text-text-secondary text-sm">Your analysis quota resets automatically on your billing date. Unused monthly analyses do not roll over to the next month.</p>
             </div>
-            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
-              <h3 className="font-semibold text-lg mb-2">What happens if I run out of my monthly limit?</h3>
-              <p className="text-text-secondary text-sm">You won't be charged automatically. You can either upgrade to a higher tier or purchase Pay-Per-Analysis credits which never expire and can be used on top of your plan.</p>
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default hover:border-border-hover transition-colors">
+              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Never Pay Unexpectedly</h3>
+              <p className="text-text-secondary text-sm">Free users are never automatically charged. When your quota is empty, you simply decide whether to wait, upgrade, or buy credits.</p>
             </div>
-            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
-              <h3 className="font-semibold text-lg mb-2">Can I cancel anytime?</h3>
-              <p className="text-text-secondary text-sm">Yes, you can cancel your subscription at any time from your Account Settings. You'll retain access to your plan until the end of your billing cycle.</p>
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default hover:border-border-hover transition-colors">
+              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Check className="w-4 h-4 text-accent-primary" /> Credits Never Expire</h3>
+              <p className="text-text-secondary text-sm">Pay-Per-Analysis credits can be used anytime, indefinitely. They act as permanent top-ups that stack with your subscription.</p>
             </div>
-            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default">
-              <h3 className="font-semibold text-lg mb-2">What's the difference between the Optimized and Full 9-Agent pipeline?</h3>
-              <p className="text-text-secondary text-sm">The Optimized pipeline uses 3 specialized agents to quickly analyze market opportunity and product-market fit. The Full 9-Agent pipeline invokes our complete suite of expert agents, including deep financial auditing, contradiction detection, and rigorous risk assessment.</p>
+            <div className="bg-bg-secondary p-6 rounded-xl border border-border-default hover:border-border-hover transition-colors">
+              <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Check className="w-4 h-4 text-accent-primary" /> Maximum Flexibility</h3>
+              <p className="text-text-secondary text-sm">You can upgrade, switch plans, or cancel your subscription at any time. You retain access until the end of the billing cycle.</p>
             </div>
           </div>
         </div>
