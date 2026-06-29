@@ -24,6 +24,7 @@ import { useReports } from '@/hooks/use-api';
 import type { ReportListItem } from '@/types/report';
 import ReportSelectionBar from '@/features/reports/ReportSelectionBar';
 import { useSession } from 'next-auth/react';
+import { getPlanRank } from '@/lib/subscription';
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */

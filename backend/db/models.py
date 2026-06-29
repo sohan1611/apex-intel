@@ -177,6 +177,39 @@ class CreditUsageHistory(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 
+class ProcessedWebhook(Base):
+    """Idempotency table to track processed webhooks from payment gateways."""
+    __tablename__ = "processed_webhooks"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    event_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)  # SUCCESS / FAILED
+    retry_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    payload_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+
+class BillingAudit(Base):
+    """Audit trail for all billing-related events (subscriptions, credits)."""
+    __tablename__ = "billing_audit"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    previous_state: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    new_state: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
 class CostTelemetry(Base):
     """Logs the estimated tokens and cost of an AI analysis run."""
     __tablename__ = "cost_telemetry"

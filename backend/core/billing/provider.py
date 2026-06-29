@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from backend.core.enums import SubscriptionTier
 
 class NormalizedBillingEvent(BaseModel):
+    provider: str
+    event_id: str
     event_type: str # "subscription_upgraded", "credits_purchased", etc.
     user_id: str
     tier: Optional[str] = None

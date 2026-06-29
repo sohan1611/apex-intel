@@ -116,6 +116,8 @@ class StripeAdapter(BillingProvider):
             if metadata.get('type') == 'credits':
                 amount = int(metadata.get('amount', 0))
                 return NormalizedBillingEvent(
+                    provider="stripe",
+                    event_id=event["id"],
                     event_type="credits_purchased",
                     user_id=user_id,
                     amount=amount,
@@ -125,10 +127,17 @@ class StripeAdapter(BillingProvider):
                 tier = metadata.get('tier')
                 if tier:
                     return NormalizedBillingEvent(
+                        provider="stripe",
+                        event_id=event["id"],
                         event_type="subscription_upgraded",
                         user_id=user_id,
                         tier=tier,
                         raw_event=event
                     )
         
-        return NormalizedBillingEvent(event_type="ignored", user_id="")
+        return NormalizedBillingEvent(
+            provider="stripe", 
+            event_id=event.get("id", ""), 
+            event_type="ignored", 
+            user_id=""
+        )
