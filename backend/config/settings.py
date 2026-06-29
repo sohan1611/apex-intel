@@ -44,15 +44,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = "placeholder-client-id.apps.googleusercontent.com"
 
     # ── Monetization & Pricing Configuration ──────────────────────────────
-    FREE_LIMIT: int = 2
-    PRO_LITE_LIMIT: int = 5
-    PRO_LIMIT: int = 10
+    # Limits and base prices are now centralized in backend.core.subscription
     
-    FREE_PRICE: int = 0
-    PRO_LITE_PRICE: int = 45
-    PRO_PRICE: int = 56
-    PAY_PER_ANALYSIS_PRICE: int = 29
-
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_PRICE_PRO_LITE: str = ""

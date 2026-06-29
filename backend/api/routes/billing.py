@@ -40,13 +40,21 @@ async def upgrade_subscription(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    valid_tiers = {"PRO_LITE", "PRO"}
-    new_tier = request.tier.upper()
+    from backend.core.enums import SubscriptionTier
+    from backend.core.subscription import SUBSCRIPTION_PLANS, get_stripe_price_id
     
-    if new_tier not in valid_tiers:
+    try:
+        new_tier_enum = SubscriptionTier(request.tier.upper())
+    except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid subscription tier.",
+        )
+        
+    if new_tier_enum not in SUBSCRIPTION_PLANS or SUBSCRIPTION_PLANS[new_tier_enum].price == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot upgrade to this tier.",
         )
         
     if not settings.STRIPE_SECRET_KEY:
@@ -55,7 +63,9 @@ async def upgrade_subscription(
             detail="Stripe payments are not yet enabled in this environment."
         )
 
-    price_id = settings.STRIPE_PRICE_PRO_LITE if new_tier == "PRO_LITE" else settings.STRIPE_PRICE_PRO
+    price_id = get_stripe_price_id(new_tier_enum)
+    if not price_id:
+        raise HTTPException(status_code=500, detail="Price ID not configured for this tier.")
     
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -73,7 +83,7 @@ async def upgrade_subscription(
         )
         return UpgradeResponse(
             message="Checkout session created",
-            new_tier=new_tier,
+            new_tier=new_tier_enum.value,
             checkout_url=checkout_session.url
         )
     except Exception as e:

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { BarChart3, Plus, Menu, X, LogOut, LogIn } from 'lucide-react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
+import { getPlanRank } from '@/lib/subscription';
 
 /**
  * Navigation link data.
@@ -112,8 +113,8 @@ export default function Navbar() {
               href="/pricing"
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium bg-accent-primary hover:bg-accent-hover text-white transition-colors shadow-sm"
             >
-              {((session?.user as any)?.tier === 'PRO') ? '💳 Buy Credits' : 
-               ((session?.user as any)?.tier === 'PRO_LITE') ? '🚀 Upgrade to Pro' : 
+              {getPlanRank((session?.user as any)?.tier) >= 3 ? '💳 Buy Credits' : 
+               getPlanRank((session?.user as any)?.tier) === 2 ? '🚀 Upgrade to Pro' : 
                '✨ Upgrade'}
             </Link>
           )}
@@ -192,8 +193,8 @@ export default function Navbar() {
                 className="mt-2 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium bg-accent-primary hover:bg-accent-hover text-white transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {((session?.user as any)?.tier === 'PRO') ? '💳 Buy Credits' : 
-                 ((session?.user as any)?.tier === 'PRO_LITE') ? '🚀 Upgrade to Pro' : 
+                {getPlanRank((session?.user as any)?.tier) >= 3 ? '💳 Buy Credits' : 
+                 getPlanRank((session?.user as any)?.tier) === 2 ? '🚀 Upgrade to Pro' : 
                  '✨ Upgrade'}
               </Link>
             )}

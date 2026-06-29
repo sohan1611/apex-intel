@@ -307,7 +307,7 @@ export default function ReportsPage() {
                             <Plus className="h-4 w-4" />
                             New Analysis
                           </Link>
-                          {tier === 'FREE' && (
+                          {getPlanRank(tier) === 0 && (
                             <Link href="/pricing" className="inline-flex items-center justify-center gap-2 bg-accent-primary border border-accent-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-accent-hover transition-colors">
                               ✨ Upgrade to Pro
                             </Link>

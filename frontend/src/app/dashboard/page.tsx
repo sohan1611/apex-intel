@@ -112,11 +112,11 @@ export default function DashboardPage() {
 
   const modelName = userConfig.aiModel;
   const pipelineType = userConfig.pipelineType;
-  const isPro = tier === 'PRO' || tier === 'PRO_LITE';
+  const isPro = userConfig.rank >= 2;
 
   // Banner logic
   useEffect(() => {
-    if (tier === 'FREE') {
+    if (userConfig.rank === 0) {
       const dismissed = sessionStorage.getItem('upgrade_banner_dismissed');
       if (!dismissed) {
         setShowUpgradeBanner(true);
@@ -239,7 +239,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: Upgrade / Subscription Management */}
-          {tier === 'PRO' ? (
+          {userConfig.rank >= 3 ? (
             <div className="rounded-xl border border-accent-primary/20 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm">
               <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Star className="h-4 w-4 text-accent-primary" /> {userConfig.name} Subscription
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
             </div>
-          ) : tier === 'PRO_LITE' ? (
+          ) : userConfig.rank === 2 ? (
             <div className="rounded-xl border border-accent-primary/20 bg-gradient-to-br from-bg-secondary to-accent-primary/5 p-6 flex flex-col shadow-sm">
               <h2 className="text-sm font-semibold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
                 <Zap className="h-4 w-4 text-accent-primary" /> {userConfig.name}
@@ -407,7 +407,7 @@ export default function DashboardPage() {
                         <Link href="/analyze" className="inline-flex items-center justify-center gap-2 bg-text-primary text-bg-primary px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-text-secondary transition-colors w-full sm:w-auto">
                           New Analysis
                         </Link>
-                        {tier === 'FREE' ? (
+                        {userConfig.rank === 0 ? (
                           <Link href="/pricing" className="inline-flex items-center justify-center gap-2 bg-accent-primary border border-accent-primary text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors w-full sm:w-auto">
                             ✨ Upgrade to Pro
                           </Link>
@@ -513,7 +513,7 @@ export default function DashboardPage() {
                     <p className="text-sm text-text-secondary leading-relaxed mb-4">
                       Your highest-rated startups will automatically appear here after your first completed report.
                     </p>
-                    {tier === 'FREE' && (
+                    {userConfig.rank === 0 && (
                       <Link href="/pricing" className="inline-block bg-bg-tertiary hover:bg-bg-elevated border border-border-default px-4 py-2 rounded-md text-xs font-medium text-text-primary transition-colors">
                         ✨ Upgrade to Pro
                       </Link>

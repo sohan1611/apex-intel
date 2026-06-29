@@ -22,6 +22,9 @@ async def get_global_stats(
     admin: User = Depends(get_current_admin)
 ):
     """Retrieve global platform statistics for admin dashboard."""
+    from backend.core.subscription import SUBSCRIPTION_PLANS
+    from backend.core.enums import SubscriptionTier
+
     # Count total users
     total_users_result = await session.execute(select(func.count(User.id)))
     total_users = total_users_result.scalar() or 0
@@ -30,23 +33,18 @@ async def get_global_stats(
     total_reports_result = await session.execute(select(func.count(Report.id)))
     total_reports = total_reports_result.scalar() or 0
     
-    # Count PRO users
-    pro_users_result = await session.execute(
-        select(func.count(Subscription.id)).where(Subscription.tier == "PRO")
-    )
-    pro_users = pro_users_result.scalar() or 0
-    
-    # Count PRO_LITE users
-    pro_lite_users_result = await session.execute(
-        select(func.count(Subscription.id)).where(Subscription.tier == "PRO_LITE")
-    )
-    pro_lite_users = pro_lite_users_result.scalar() or 0
+    # Dynamically count users per tier
+    tier_counts = {}
+    for tier in SubscriptionTier:
+        count_result = await session.execute(
+            select(func.count(Subscription.id)).where(Subscription.tier == tier.value)
+        )
+        tier_counts[f"{tier.value.lower()}_users"] = count_result.scalar() or 0
     
     return {
         "total_users": total_users,
         "total_reports": total_reports,
-        "pro_users": pro_users,
-        "pro_lite_users": pro_lite_users
+        **tier_counts
     }
 
 @router.get("/users")

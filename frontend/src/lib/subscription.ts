@@ -16,8 +16,12 @@ export interface PlanConfig {
   pipelineType: string;
   popular?: boolean;
   features: PlanFeature[];
+  rank: number;
+  stripePriceEnv?: string; // Informational mapping for parity with backend
 }
 
+// Single Source of Truth for the Frontend
+// Must be manually synchronized with backend/core/subscription.py
 export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
   FREE: {
     tier: 'FREE',
@@ -28,6 +32,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     monthlyLimit: 2,
     aiModel: 'Gemini 2.5 Flash Lite',
     pipelineType: 'Optimized 3-Agent Pipeline',
+    rank: 0,
     features: [
       { name: '2 analyses per month', included: true },
       { name: 'Uses previous-generation AI models', included: true },
@@ -47,6 +52,8 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     monthlyLimit: 0,
     aiModel: 'Gemini 2.5 Flash',
     pipelineType: 'Full 9-Agent Pipeline',
+    rank: 1,
+    stripePriceEnv: 'STRIPE_PRICE_CREDIT',
     features: [
       { name: 'One-time purchase', included: true },
       { name: 'Credits never expire', included: true },
@@ -66,6 +73,8 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     monthlyLimit: 5,
     aiModel: 'Gemini 2.5 Flash',
     pipelineType: 'Standard 5-Agent Pipeline',
+    rank: 2,
+    stripePriceEnv: 'STRIPE_PRICE_PRO_LITE',
     features: [
       { name: '5 analyses per month', included: true },
       { name: 'Premium AI Model Access', included: true },
@@ -81,11 +90,13 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, PlanConfig> = {
     name: 'Pro',
     price: '₹56',
     interval: '/ month',
-    popular: true,
     description: 'Complete institutional-grade AI due diligence for investors and power users.',
     monthlyLimit: 10,
     aiModel: 'Gemini 2.5 Flash',
     pipelineType: 'Full 9-Agent Pipeline',
+    popular: true,
+    rank: 3,
+    stripePriceEnv: 'STRIPE_PRICE_PRO',
     features: [
       { name: '10 analyses per month', included: true },
       { name: 'Premium AI Model Access', included: true },
@@ -106,11 +117,5 @@ export const getPlanConfig = (tier?: string | null): PlanConfig => {
 };
 
 export const getPlanRank = (tier: string): number => {
-  const ranks: Record<string, number> = {
-    FREE: 0,
-    PAY_PER_ANALYSIS: 1, // Treat as side-grade or level 1
-    PRO_LITE: 2,
-    PRO: 3
-  };
-  return ranks[tier] ?? 0;
+  return getPlanConfig(tier).rank;
 };
