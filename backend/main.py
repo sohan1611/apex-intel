@@ -103,6 +103,22 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
+from fastapi.responses import JSONResponse
+import os
+
+@app.middleware("http")
+async def maintenance_mode_middleware(request: Request, call_next):
+    if os.getenv("MAINTENANCE_MODE") == "true":
+        # Allow GET requests and health/docs endpoints
+        if request.method not in ("GET", "OPTIONS") and not request.url.path.startswith(("/docs", "/openapi.json", "/health")):
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "Apex Intel is currently undergoing scheduled database maintenance. New analyses cannot be started. Please try again in 5 minutes."},
+                headers={"Retry-After": "300"}
+            )
+    return await call_next(request)
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Middleware
 # ═══════════════════════════════════════════════════════════════════════════
