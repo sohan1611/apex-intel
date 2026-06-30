@@ -206,7 +206,7 @@ class BillingAudit(Base):
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     previous_state: Mapped[str | None] = mapped_column(String(255), nullable=True)
     new_state: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    event_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 

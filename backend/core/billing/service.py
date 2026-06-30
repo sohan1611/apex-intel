@@ -42,7 +42,7 @@ class BillingService:
             action=action,
             previous_state=previous_state,
             new_state=new_state,
-            metadata=metadata
+            event_metadata=metadata
         )
         self.db.add(audit)
 
