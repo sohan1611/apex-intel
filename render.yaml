@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: apex-intel-backend
+    env: docker
+    region: ohio # Match this to your Railway/Database region if possible
+    rootDir: backend
+    healthCheckPath: /health
+    autoDeploy: false # Prevent accidental deploys during migration cutover
+    envVars:
+      # Application
+      - key: APP_NAME
+        value: "Apex Intel"
+      - key: DEBUG
+        value: "False"
+        
+      # Authentication
+      - key: JWT_SECRET_KEY
+        sync: false # Must be populated manually from Railway
+      - key: GOOGLE_CLIENT_ID
+        sync: false # Must be populated manually from Railway
+        
+      # Database
+      - key: DATABASE_URL
+        sync: false # Must be copied from Railway (postgresql://...)
+        
+      # LLM Configuration
+      - key: LLM_PROVIDER
+        value: "gemini"
+      - key: GEMINI_API_KEY
+        sync: false # Must be populated manually
+      - key: GEMINI_MODEL
+        value: "gemini-2.5-flash"
+      - key: LLM_MAX_CONCURRENT_REQUESTS
+        value: "2"
+        
+      # Web Search
+      - key: SERPER_API_KEY
+        sync: false # Must be populated manually
+        
+      # Redis (optional)
+      - key: REDIS_URL
+        sync: false
+        
+      # Agents
+      - key: AGENT_TIMEOUT_SECONDS
+        value: "60"
+      - key: AGENT_MAX_RETRIES
+        value: "2"
+        
+      # CORS
+      - key: CORS_ORIGINS
+        sync: false # Set to ["https://your-frontend-domain.vercel.app"]
+        
+      # Billing Configuration
+      - key: PAYMENT_PROVIDER
+        value: "stripe"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_PRO_LITE
+        sync: false
+      - key: STRIPE_PRICE_PRO
+        sync: false
+      - key: STRIPE_PRICE_CREDIT
+        sync: false
